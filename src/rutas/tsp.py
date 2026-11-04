@@ -77,7 +77,8 @@ def brute_force_tsp(costs: Matrix) -> Tour:
     se obtiene intercambiando ``perm[d]`` con ``perm[i]`` (i ≥ d), así que cada nodo
     hace O(1) por hijo (R4-B05). No hay poda: toda permutación se evalúa completa; el
     costo del prefijo se acumula al bajar. Total Σ k!/(k−d−1)! < e·k! iteraciones:
-    tiempo Θ(k!), memoria O(k) (la pila de la recursión y ``perm``).
+    tiempo Θ(k!) esperado; O(k·k!) en el peor caso por la copia O(k) del mejor orden
+    en cada mejora (R4-B05). Memoria O(k) (la pila de la recursión y ``perm``).
 
     En empate se conserva el primero encontrado (R4-B04: se comparan costos).
     """
