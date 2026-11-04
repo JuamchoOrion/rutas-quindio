@@ -19,7 +19,12 @@ START = 0
 
 @dataclass(frozen=True)
 class Tour:
-    """Recorrido cerrado que sale de 0 y vuelve a 0, con su costo total en segundos."""
+    """Recorrido cerrado que sale de 0 y vuelve a 0, con su costo total en segundos.
+
+    Todo ``Tour`` devuelto visita ``1..k`` exactamente una vez y su ``cost`` es igual a
+    :func:`tour_cost` del orden (R4-B03). Si hay varios óptimos, cualquiera es válido
+    (R4-B04).
+    """
 
     order: list[int]
     cost: float
@@ -29,7 +34,8 @@ def validate_matrix(costs: Matrix) -> int:
     """Valida R4-B01 y devuelve ``k`` (lugares a visitar sin contar el inicio).
 
     Raises:
-        ValueError: si la matriz está vacía, no es cuadrada o tiene valores negativos o NaN.
+        ValueError: si la matriz está vacía, no es cuadrada, tiene valores negativos
+            o NaN, o su diagonal no es 0.
     """
     n = len(costs)
     if n == 0:
@@ -40,6 +46,8 @@ def validate_matrix(costs: Matrix) -> int:
         for j, value in enumerate(row):
             if math.isnan(value) or value < 0:
                 raise ValueError(f"Costo inválido costs[{i}][{j}] = {value}")
+        if row[i] != 0:
+            raise ValueError(f"La diagonal debe ser 0: costs[{i}][{i}] = {row[i]}")
     return n - 1
 
 
@@ -62,42 +70,42 @@ def _trivial_tour(costs: Matrix, k: int) -> Tour | None:
 # Fuerza bruta
 # --------------------------------------------------------------------------- #
 def brute_force_tsp(costs: Matrix) -> Tour:
-    """Evalúa las k! permutaciones de ``1..k`` (inicio fijo) por backtracking.
+    """Evalúa las k! permutaciones de ``1..k`` (inicio fijo) por backtracking con intercambios.
 
-    No hay poda (R4-B05): cada permutación se recorre completa. El costo del prefijo
-    se acumula al descender para no recalcularlo, por lo que el árbol tiene
-    ≈ e·k! nodos y el tiempo es Θ(k!). Memoria O(k) (la pila de la recursión).
+    Generador propio, sin ``itertools.permutations`` (R4-B06). En la profundidad ``d``,
+    ``perm[:d]`` es el prefijo fijado y ``perm[d:]`` los lugares que faltan; cada hijo
+    se obtiene intercambiando ``perm[d]`` con ``perm[i]`` (i ≥ d), así que cada nodo
+    hace O(1) por hijo (R4-B05). No hay poda: toda permutación se evalúa completa; el
+    costo del prefijo se acumula al bajar. Total Σ k!/(k−d−1)! < e·k! iteraciones:
+    tiempo Θ(k!), memoria O(k) (la pila de la recursión y ``perm``).
+
+    En empate se conserva el primero encontrado (R4-B04: se comparan costos).
     """
     k = validate_matrix(costs)
     trivial = _trivial_tour(costs, k)
     if trivial is not None:
         return trivial
 
+    perm = list(range(1, k + 1))
     best_cost = math.inf
-    best_order: list[int] = []
-    current = [START]
-    used = [False] * (k + 1)
-    used[START] = True
+    best_perm: list[int] = []
 
-    def extend(prefix_cost: float) -> None:
-        nonlocal best_cost, best_order
-        last = current[-1]
-        if len(current) == k + 1:  # Permutación completa: cerrar el ciclo.
+    def extend(depth: int, last: int, prefix_cost: float) -> None:
+        nonlocal best_cost, best_perm
+        if depth == k:  # Permutación completa: cerrar el ciclo.
             total = prefix_cost + costs[last][START]
             if total < best_cost:
                 best_cost = total
-                best_order = current + [START]
+                best_perm = perm.copy()  # O(k), solo cuando mejora.
             return
-        for place in range(1, k + 1):
-            if not used[place]:
-                used[place] = True
-                current.append(place)
-                extend(prefix_cost + costs[last][place])
-                current.pop()
-                used[place] = False
+        for i in range(depth, k):
+            perm[depth], perm[i] = perm[i], perm[depth]
+            place = perm[depth]
+            extend(depth + 1, place, prefix_cost + costs[last][place])
+            perm[depth], perm[i] = perm[i], perm[depth]
 
-    extend(0.0)
-    return Tour(best_order, best_cost)
+    extend(0, START, 0.0)
+    return Tour([START, *best_perm, START], best_cost)
 
 
 # --------------------------------------------------------------------------- #
@@ -112,7 +120,9 @@ def held_karp(costs: Matrix) -> Tour:
     """Programación dinámica sobre subconjuntos. Tiempo Θ(2^k·k²), memoria Θ(2^k·k).
 
     Estado ``(S, j)``: ``S`` es una máscara de bits sobre los lugares ``1..k`` (el bit
-    ``j-1`` representa al lugar ``j``) y ``j ∈ S`` es el último visitado.
+    ``j-1`` representa al lugar ``j``) y ``j ∈ S`` es el último visitado. Es correcto
+    por subestructura óptima (R4-B07): el prefijo de un camino óptimo que termina en
+    ``j`` es óptimo para ``S \\ {j}``. Recurrencia (R4-B08):
 
         C({j}, j) = d(0, j)
         C(S, j)   = min_{i ∈ S \\ {j}} C(S \\ {j}, i) + d(i, j)
@@ -182,7 +192,9 @@ def _held_karp_path(parent: list[int], k: int, full_mask: int, last: int) -> lis
 def nearest_neighbor_tour(costs: Matrix) -> Tour:
     """Vecino más cercano: siempre al lugar no visitado más rápido de alcanzar (R4-B12).
 
-    Empate → menor índice. Tiempo Θ(k²), memoria O(k).
+    Empate → menor índice. Tiempo Θ(k²), memoria O(k). Se elige por ser la voraz más
+    directa y porque solo mira la fila del lugar actual, así que sirve igual en el
+    caso asimétrico (R4-B13).
     """
     k = validate_matrix(costs)
     visited = [False] * (k + 1)
@@ -220,6 +232,8 @@ def instance_matrix(
     """Submatriz de una instancia: fila/columna 0 = ``start``; 1..k = ``places``.
 
     ``start`` y ``places`` son posiciones dentro de ``full_matrix`` (la matriz de R2).
+    La fila ``t`` corresponde a ``[start, *places][t]``; quien llama conserva esa lista
+    para traducir a ids (R4-C11).
     """
     selection = [start, *places]
     return [[full_matrix[a][b] for b in selection] for a in selection]
