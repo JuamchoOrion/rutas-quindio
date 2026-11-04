@@ -113,7 +113,7 @@ plan_day(costs, labels, visit_min, budget_s=11*3600) -> DayPlan
 | Algoritmo | Tiempo | Memoria | Fuente |
 |---|---|---|---|
 | Fuerza bruta (textbook, costo de cada permutación desde cero) | Θ(k · k!) | O(k) | — |
-| Fuerza bruta implementada (costo incremental, intercambios) | Θ(k!) (ver abajo) | O(k) | — |
+| Fuerza bruta implementada (costo incremental, intercambios) | Θ(k!) esperado; O(k·k!) peor caso (copia O(k) del mejor orden en cada mejora) | O(k) | — |
 | Held-Karp | Θ(2^k · k²) | Θ(2^k · k) | Held y Karp, "A dynamic programming approach to sequencing problems", *J. SIAM* 10(1), 1962; Bellman, *J. ACM* 9(1), 1962 |
 | Vecino más cercano | Θ(k²) | O(k) | Rosenkrantz, Stearns y Lewis, *SIAM J. Comput.* 6(3), 1977 |
 
@@ -122,10 +122,17 @@ toma el mínimo sobre ≤ `k` predecesores → `Σ_{s=1..k} C(k, s) · s · (s �
 
 Fuerza bruta implementada: en la profundidad `d` hay `k!/(k − d)!` nodos y cada
 uno hace `k − d` iteraciones O(1), así que el total es
-`Σ_{d=0..k-1} k!/(k − d − 1)! = k! · Σ_{m=0..k-1} 1/m! < e · k!` → Θ(k!). La copia
-del mejor orden cuesta O(k) cada vez que el mejor costo mejora; en el peor caso
-teórico eso podría ocurrir en muchas hojas, pero en datos aleatorios el número
-esperado de mejoras es del orden de `ln(k!)` = O(k log k), despreciable frente a k!.
+`Σ_{d=0..k-1} k!/(k − d − 1)! = k! · Σ_{m=0..k-1} 1/m! < e · k!` → Θ(k!) para el
+recorrido del árbol. A eso se suma la copia del mejor orden, que cuesta O(k) cada
+vez que el mejor costo mejora. En el **peor caso** el costo puede mejorar en cada una
+de las k! hojas, y el total es **O(k·k!)**. Para **datos aleatorios** se **estima**
+que el número de mejoras es del orden de `ln(k!)` = O(k log k) (suponiendo que los
+costos de las hojas, en el orden en que se visitan, se comportan como una secuencia
+aleatoria sin empates; el número esperado de nuevos mínimos de n valores así es el
+número armónico `H_n ≈ ln n`). Con esa estimación el total esperado es Θ(k!). Es una
+estimación para datos aleatorios, **no una garantía**: el orden de visita del
+backtracking no es aleatorio y una matriz construida a propósito puede acercarse al
+peor caso.
 (La versión anterior, que en cada nodo recorría los `k` lugares para buscar los
 libres, costaba Θ(k · k!): se midieron ≈ (e − 1) · k · k! iteraciones para k = 5..10.)
 
