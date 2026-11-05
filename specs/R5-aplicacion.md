@@ -50,9 +50,16 @@ Tecnología: **Streamlit** (interfaz web local con un solo comando) + **Folium**
   `results/r3/envolvente_red.json` antes de ejecutar `scripts/run_r3.py`), la app no
   falla: en su lugar muestra un aviso con el nombre del archivo y el script que lo
   genera. Si falta `data/processed/`, muestra cómo ejecutar R1 y se detiene.
-- **R5-B07. Ruta sobre el mapa.** La ruta se dibuja con las coordenadas
-  (lat, lon) de sus nodos, en orden; se marcan el origen y el destino. El tiempo se
-  muestra en minutos y coincide con la celda de la matriz de R2 (R5-C01).
+- **R5-B07. Ruta sobre el mapa.** Cada tramo `u → v` de la ruta se dibuja con la
+  forma real de la vía: la `geometry` de la arista que usó Dijkstra (entre aristas
+  paralelas, la de menor `travel_time_s`). OSMnx guarda la `geometry` en orden
+  `(lon, lat)`; al dibujar se convierte a `(lat, lon)`, el orden de Folium. Si el
+  primer punto de la `geometry` está más cerca de `v` que de `u`, la lista de puntos
+  se invierte antes de dibujar el tramo, para que siempre vaya de `u` a `v`. Si la
+  arista no tiene `geometry`, el tramo es recto entre los dos nodos. Se aplica a la
+  ruta origen-destino y a los dos recorridos del itinerario. Se marcan el origen y
+  el destino. El tiempo se muestra en minutos y coincide con la celda de la matriz
+  de R2 (R5-C01). Solo se leen coordenadas: no se usa Shapely para calcular nada.
 - **R5-B08. Envolvente.** Se lee `results/r3/envolvente_red.json` con el formato
   que define la spec de R3 (`{"crs": "EPSG:32618", "n_puntos": …, "vertices":
   [[x, y], …]}`, metros enteros, orden de R3-B04). Si `crs` no es `EPSG:32618`, se
@@ -65,6 +72,19 @@ Tecnología: **Streamlit** (interfaz web local con un solo comando) + **Folium**
 - **R5-B10. Carga única.** La red, el catálogo y la matriz se cargan una sola vez por
   sesión (`st.cache_resource`), no en cada interacción.
 
+- **R5-B11. Resultado de la selección actual.** La ruta y el itinerario se guardan
+  junto con los datos de entrada que los produjeron; si el usuario cambia la
+  selección sin volver a calcular, no se muestra el resultado anterior, sino la
+  indicación de pulsar el botón.
+- **R5-B12. Pestañas y mapas.** Solo se ejecuta la pestaña abierta
+  (`st.tabs(..., on_change="rerun")`), que queda en la URL (`?seccion=`): un mapa
+  de Leaflet creado en una pestaña oculta tiene ancho 0 y se muestra como el mundo
+  repetido. Los mapas parten centrados en el Quindío, con zoom mínimo 8 y límites en
+  la región. Mapa base: gris claro de Esri (sin clave) con capa de nombres;
+  OpenStreetMap como alternativa en el control de capas. Los colores de categorías y
+  recorridos se validaron para daltonismo y contraste, y el vecino más cercano se
+  dibuja punteado (no se distingue solo por color).
+
 ## Casos de prueba
 
 Automáticos (`tests/test_r5_app.py`):
@@ -72,11 +92,13 @@ Automáticos (`tests/test_r5_app.py`):
 | ID | Entrada | Resultado esperado |
 |---|---|---|
 | R5-C06 | `compare_tours` con la matriz `CE` de R4 y visitas de 10 min por atractivo | desplazamientos: Held-Karp 5 s y vecino 22 s; totales con visitas 1 805 s y 1 822 s; diferencia 17 s y 340 % (sobre los desplazamientos) |
-| R5-C07 | `route_latlons` con una ruta de 3 nodos | 3 pares (lat, lon) en el orden de la ruta |
+| R5-C07 | `route_latlons` con una ruta de 3 nodos y aristas sin `geometry` | 3 pares (lat, lon) en el orden de la ruta (tramos rectos) |
+| R5-C12 | `route_latlons` con un tramo con `geometry` curva `(lon, lat)` y otro sin ella | el primero se dibuja con todos sus puntos convertidos a `(lat, lon)`; el segundo, con sus dos nodos |
+| R5-C13 | `route_latlons` con un tramo cuya `geometry` va de `v` a `u` | los puntos se dibujan en el sentido `u → v` |
 | R5-C08 | `hull_latlons` con un JSON de 4 vértices UTM | 4 pares (lat, lon), cada uno igual a `to_latlon` de su vértice |
 | R5-C09 | `hull_latlons` / `result_files` con archivos que no existen | `None` y listas vacías, sin excepción (R5-B06) |
 | R5-C10 | `result_files` sobre una carpeta con CSV, PNG y una subcarpeta | solo los archivos de la carpeta, en orden alfabético (R5-B09) |
-| R5-C11 | La app completa con `streamlit.testing` (AppTest) | se ejecuta sin excepciones con los datos del repositorio; `pytest.skip` si faltan `data/processed/` o `results/` |
+| R5-C11 | La app completa con `streamlit.testing` (AppTest), abriendo cada pestaña con `?seccion=` | se ejecuta sin excepciones en las cuatro pestañas, calcula una ruta y un itinerario de 7 atractivos; `pytest.skip` si faltan `data/processed/` o `results/` |
 
 Manuales (con captura en el documento técnico):
 
