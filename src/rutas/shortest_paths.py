@@ -77,12 +77,12 @@ def dijkstra_linear(graph: Graph, source: int, target: int) -> PathResult:
             if not settled[v] and dist[v] < best:
                 best = dist[v]
                 u = v
-        if u == NO_PREDECESSOR:  # No quedan nodos alcanzables sin extraer.
+        if u == NO_PREDECESSOR:  # Sin camino: explored = nodos alcanzables (R2-B06).
             return PathResult(math.inf, [], explored)
 
         settled[u] = True
-        explored += 1
-        if u == target:
+        explored += 1  # Cada nodo se cuenta una vez, al extraerlo (R2-B02).
+        if u == target:  # source == target → cost 0, path [source], explored 1 (R2-B05).
             return PathResult(dist[u], _reconstruct_path(predecessor, source, target), explored)
 
         for v, weight in graph.adjacency[u]:
@@ -112,8 +112,8 @@ def _dijkstra_heap_core(
         if settled[u]:
             continue  # Entrada obsoleta (eliminación perezosa, R2-B08): no se cuenta.
         settled[u] = True
-        explored += 1
-        if u == target:
+        explored += 1  # Solo la primera extracción cuenta (R2-B02).
+        if u == target:  # Parada temprana (R2-B03); source == target → explored 1 (R2-B05).
             break
 
         for v, weight in graph.adjacency[u]:
@@ -135,7 +135,7 @@ def dijkstra_heap(graph: Graph, source: int, target: int) -> PathResult:
     _check_node(graph, target, "destino")
 
     dist, predecessor, explored = _dijkstra_heap_core(graph, source, target)
-    if math.isinf(dist[target]):
+    if math.isinf(dist[target]):  # Sin camino (R2-B06).
         return PathResult(math.inf, [], explored)
     return PathResult(dist[target], _reconstruct_path(predecessor, source, target), explored)
 

@@ -6,3 +6,6 @@ __pycache__/
 # Red cruda descargada (pesada; se regenera con scripts/build_network.py)
 data/raw/*.graphml
 .streamlit/secrets.toml
+# Caché HTTP de OSMnx (respuestas de Overpass)
+cache/
+data/raw/*.json

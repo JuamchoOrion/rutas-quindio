@@ -8,6 +8,7 @@ from rutas.geo import nearest_node, to_latlon, to_utm
 from rutas.graph import Graph
 from rutas.network_model import (
     DEFAULT_SPEED_KMH,
+    LEGAL_MAX_KMH,
     edge_speed_kmh,
     estimate_memory,
     parse_maxspeed,
@@ -35,9 +36,18 @@ def test_R1_C04_unparseable_or_implausible(raw):
 
 
 def test_R1_C05_default_by_highway_type():
-    assert edge_speed_kmh(None, "residential") == (DEFAULT_SPEED_KMH["residential"], "highway_default")
-    assert edge_speed_kmh(None, ["tipo_raro", "primary"]) == (DEFAULT_SPEED_KMH["primary"], "highway_default")
+    residential = (DEFAULT_SPEED_KMH["residential"], "highway_default")
+    primary = (DEFAULT_SPEED_KMH["primary"], "highway_default")
+    assert edge_speed_kmh(None, "residential") == residential
+    assert edge_speed_kmh(None, ["tipo_raro", "primary"]) == primary
     assert edge_speed_kmh("45", "primary") == (45.0, "maxspeed")
+
+
+def test_R1_C14_defaults_within_legal_limit():
+    """Toda velocidad por defecto tiene límite legal y no lo supera (R1-B08, Ley 2251/2022)."""
+    assert DEFAULT_SPEED_KMH.keys() == LEGAL_MAX_KMH.keys()
+    for highway, speed in DEFAULT_SPEED_KMH.items():
+        assert 0 < speed <= LEGAL_MAX_KMH[highway], highway
 
 
 def test_R1_C06_fallback():

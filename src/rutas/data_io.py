@@ -30,5 +30,7 @@ def load_processed_network() -> ProcessedNetwork:
     graph = Graph.from_networkx(nx_graph, weight="travel_time_s")
     places = load_catalog(paths.CATALOG_CSV)
     with open(paths.PLACE_NODES_CSV, newline="", encoding="utf-8") as file:
-        place_node = {row["id"]: graph.index_of(int(row["nodo_osm"])) for row in csv.DictReader(file)}
+        place_node = {
+            row["id"]: graph.index_of(int(row["nodo_osm"])) for row in csv.DictReader(file)
+        }
     return ProcessedNetwork(nx_graph, graph, places, place_node)

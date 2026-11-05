@@ -82,16 +82,25 @@ def validate_catalog(places: Iterable[Place]) -> list[str]:
 
     duplicated = [pid for pid, n in Counter(p.id for p in places).items() if n > 1]
     if duplicated:
-        errors.append(f"Identificadores repetidos: {sorted(duplicated)}")
+        errors.append(f"Identificadores repetidos: {sorted(duplicated)}")  # R1-B23
     if all(place.id != DEFAULT_START_ID for place in places):
         errors.append(f"Falta el lugar de partida por defecto '{DEFAULT_START_ID}'")
 
     for place in places:
-        if not (LAT_RANGE[0] <= place.lat <= LAT_RANGE[1] and LON_RANGE[0] <= place.lon <= LON_RANGE[1]):
-            errors.append(f"'{place.id}' tiene coordenadas fuera del Quindío: ({place.lat}, {place.lon})")
-        if place.category == "atractivo":
+        if not _inside_bounding_box(place):  # R1-B24
+            errors.append(
+                f"'{place.id}' tiene coordenadas fuera del Quindío: ({place.lat}, {place.lon})"
+            )
+        if place.category == "atractivo":  # R1-B22
             if place.visit_min is None or place.visit_min <= 0:
                 errors.append(f"El atractivo '{place.id}' no tiene duración de visita válida")
             if not place.visit_source:
                 errors.append(f"El atractivo '{place.id}' no tiene fuente de la duración")
     return errors
+
+
+def _inside_bounding_box(place: Place) -> bool:
+    """Control grueso del recuadro del departamento (R1-B24)."""
+    lat_ok = LAT_RANGE[0] <= place.lat <= LAT_RANGE[1]
+    lon_ok = LON_RANGE[0] <= place.lon <= LON_RANGE[1]
+    return lat_ok and lon_ok
