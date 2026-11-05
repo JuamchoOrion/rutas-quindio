@@ -33,7 +33,7 @@ flowchart LR
         HK --> DAY[Itinerario 11 h]
     end
 
-    R2 --> R5
+    R2 -->|matriz_tiempos.csv| R5
     R3 -->|envolvente_red.json| R5
     R4 --> R5
     RES[(results/*.csv, *.png)] --> R5
@@ -46,7 +46,7 @@ flowchart LR
 |---|---|---|
 | R1 | `data/processed/red_cfc.graphml` | R2, R3, R5 |
 | R1 | `data/processed/lugares_nodos.csv` | R2, R5 |
-| R2 | `results/r2/matriz_tiempos.csv` | R4 |
+| R2 | `results/r2/matriz_tiempos.csv` (leída con `data_io.load_travel_time_matrix`) | R4, R5 |
 | R3 | `results/r3/envolvente_red.json` | R5 |
 | R1–R4 | `results/rX/*.csv` y gráficas | Documento técnico, R5 |
 
@@ -61,3 +61,4 @@ flowchart LR
 | QuickHull con enteros y pila explícita | h ≪ n en la red; giros exactos; sin límite de recursión | R3 |
 | Held-Karp con tablas aplanadas | Memoria contigua, índice `S·k + j` | R4-B09 |
 | Vecino más cercano | Voraz más simple; contraste directo con Dijkstra | R4-B13 |
+| App en Streamlit + Folium, lógica en `rutas.app_support` | Un solo comando para ejecutarla; la lógica se prueba con pytest sin la interfaz | R5 |
