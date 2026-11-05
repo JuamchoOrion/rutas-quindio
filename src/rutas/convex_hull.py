@@ -34,13 +34,21 @@ def prepare_points(xs_m: Iterable[float], ys_m: Iterable[float]) -> list[Point]:
 
 
 def cross(a: Point, b: Point, p: Point) -> int:
-    """Producto cruz de (b − a) × (p − a).
+    """Producto cruz de (b − a) × (p − a), en enteros y sin divisiones (R3-B02).
 
     > 0: ``p`` está a la izquierda del segmento dirigido a → b (giro antihorario).
     = 0: colineales.
     < 0: ``p`` está a la derecha.
     """
     return (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
+
+
+def dot(a: Point, b: Point, p: Point) -> int:
+    """Producto punto (b − a) · (p − a): proyección (escalada) de ``p`` sobre a → b.
+
+    Se usa para desempatar el punto más lejano (R3-B08).
+    """
+    return (b[0] - a[0]) * (p[0] - a[0]) + (b[1] - a[1]) * (p[1] - a[1])
 
 
 def _points_right_of(a: Point, b: Point, candidates: Iterable[Point]) -> list[Point]:
@@ -62,6 +70,10 @@ def quickhull(points: Sequence[Point]) -> list[Point]:
 
     La recursión se simula con una pila explícita (R3-B06): no hay límite de
     profundidad aunque todos los puntos sean vértices.
+
+    Casos degenerados (R3-B05): 0 o 1 punto se devuelven tal cual; si todos son
+    colineales, ninguna cadena tiene puntos estrictamente a la derecha y quedan solo
+    los dos extremos. La corrección se verifica contra SciPy en las pruebas (R3-B07).
     """
     if len(points) <= 1:
         return list(points)
@@ -98,11 +110,20 @@ def _hull_chain(a: Point, b: Point, outside: list[Point], hull: list[Point]) -> 
         if not candidates:
             continue
 
-        # El más lejano a la recta es el de |cross| máximo (cross < 0 aquí).
-        farthest = min(candidates, key=lambda p: cross(seg_a, seg_b, p))
+        farthest = _farthest_point(seg_a, seg_b, candidates)
         right_of_a_c = _points_right_of(seg_a, farthest, candidates)
         right_of_c_b = _points_right_of(farthest, seg_b, candidates)
 
         stack.append((solve, farthest, seg_b, right_of_c_b))
         stack.append((emit, farthest))
         stack.append((solve, seg_a, farthest, right_of_a_c))
+
+
+def _farthest_point(a: Point, b: Point, candidates: list[Point]) -> Point:
+    """Punto de ``candidates`` más lejano a la recta a → b. Θ(len(candidates)).
+
+    Todos tienen ``cross < 0``, así que el más lejano es el de ``cross`` mínimo. En
+    empate se toma el más cercano a ``a`` (menor ``dot``): es un extremo del lado
+    paralelo a ``ab`` y los demás empatados quedan colineales y se descartan (R3-B08).
+    """
+    return min(candidates, key=lambda p: (cross(a, b, p), dot(a, b, p)))

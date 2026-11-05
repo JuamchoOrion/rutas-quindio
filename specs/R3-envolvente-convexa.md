@@ -64,6 +64,13 @@ quickhull(points: Sequence[Point]) -> list[Point]   # vértices en sentido antih
   depender del límite de recursión de Python en entradas con muchos vértices.
 - **R3-B07.** Verificación: el conjunto de vértices es igual al de
   `scipy.spatial.ConvexHull(points).vertices` en todas las pruebas no degeneradas.
+- **R3-B08.** Empate en el punto más lejano: si en el subproblema `(a, b)` varios
+  candidatos tienen el mismo `|cross(a, b, p)|` máximo (están sobre una recta
+  paralela a `ab`), se elige el **más cercano a `a`**, es decir, el de menor
+  proyección `dot(a, b, p) = (bx − ax)(px − ax) + (by − ay)(py − ay)` (entera,
+  exacta). Así el elegido es un extremo de ese lado y los demás puntos empatados
+  quedan colineales con él y con el otro extremo, y se descartan por R3-B03. Sin
+  esta regla, un punto en medio del lado podría salir como vértice.
 
 ## Recurrencia y complejidad
 
@@ -92,8 +99,33 @@ hulls", *ACM Trans. Math. Software* 22(4), 1996.
 | Cuadrado 1 000 / 10 000 / 50 000 | enteros uniformes en `[0, 100 000)²`, semilla `SEED` |
 
 Archivo `results/r3/envolvente_tiempos.csv`:
-`conjunto, n, vertices, tiempo_propio_ms, tiempo_scipy_ms, cociente`.
-El tiempo de SciPy mide solo `ConvexHull(arr)` con `arr` ya construido.
+`conjunto, n, vertices, tiempo_propio_ms, tiempo_scipy_ms, cociente, semilla`.
+
+- `cociente = tiempo_propio_ms / tiempo_scipy_ms` (cuántas veces más lento es el
+  propio).
+- `semilla` = `SEED` (PE-B05); en el conjunto de la red no se usa azar, pero se
+  registra igual para que todas las filas tengan el mismo formato.
+- El tiempo de SciPy mide solo `ConvexHull(arr)` con `arr` ya construido; el propio
+  mide solo `quickhull(points)` con `points` ya preparado (PE-B02).
+- Antes de medir cada conjunto, el script compara el conjunto de vértices propio
+  con el de SciPy y aborta si difieren (R3-B07, PE-B06).
+- Datos de la máquina en `results/r3/maquina.json` (PE-B01).
+
+Archivo `results/r3/envolvente_red.json` (lo lee la aplicación, R5-B02):
+
+```json
+{
+  "crs": "EPSG:32618",
+  "n_puntos": 0,
+  "vertices": [[0, 0], [0, 0]]
+}
+```
+
+`vertices` son los de la envolvente de los nodos de la red, en metros enteros y en
+el orden de R3-B04 (antihorario, sin repetir el primero). La conversión a lat/lon
+la hace quien lo lee.
+
+No se pide gráfica para R3: el resultado es la tabla.
 
 ## Casos de prueba
 
@@ -106,6 +138,7 @@ El tiempo de SciPy mide solo `ConvexHull(arr)` con `arr` ya construido.
 | R3-C05 | Triángulo | 3 vértices |
 | R3-C06 | `prepare_points([1.4, 1.6, 1.4], [2.4, 0.2, 2.3])` | `[(1, 2), (2, 0)]` (redondeo + sin duplicados, conserva el orden de aparición) |
 | R3-C10 | `prepare_points([0.5, -0.5], [2.5, -2.5])` | `[(1, 3), (0, -2)]` (empates hacia +∞: `floor(v + 0.5)`) |
+| R3-C11 | `(0,0),(10,0),(5,5),(2,5),(8,5)` (tres puntos empatados a la distancia máxima; el del medio aparece primero) | `[(0,0),(10,0),(8,5),(2,5)]`: `(5,5)` no es vértice (R3-B08) |
 | R3-C07 | 50 nubes aleatorias (semilla fija), n entre 10 y 2 000 | mismo conjunto de vértices que SciPy |
 | R3-C08 | 360 puntos sobre una circunferencia (peor caso) | todos son vértices; sin `RecursionError` |
 | R3-C09 | Salida de R3-C07 | todos los giros consecutivos son estrictamente a la izquierda (`cross > 0`) |

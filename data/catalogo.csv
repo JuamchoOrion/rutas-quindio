@@ -1,1 +1,41 @@
 id,nombre,municipio,categoria,lat,lon,duracion_visita_min,fuente_duracion
+armenia,Plaza de Bolívar de Armenia,Armenia,cabecera,4.5339,-75.6811,,
+buenavista,Plaza principal de Buenavista,Buenavista,cabecera,4.3597,-75.7395,,
+calarca,Plaza de Bolívar de Calarcá,Calarcá,cabecera,4.5297,-75.6434,,
+circasia,Plaza de Bolívar de Circasia,Circasia,cabecera,4.6180,-75.6363,,
+cordoba,Plaza principal de Córdoba,Córdoba,cabecera,4.3922,-75.6878,,
+filandia,Plaza de Bolívar de Filandia,Filandia,cabecera,4.6740,-75.6580,,
+genova,Plaza principal de Génova,Génova,cabecera,4.2073,-75.7893,,
+la_tebaida,Plaza de Bolívar de La Tebaida,La Tebaida,cabecera,4.4527,-75.7880,,
+montenegro,Plaza de Bolívar de Montenegro,Montenegro,cabecera,4.5662,-75.7509,,
+pijao,Plaza principal de Pijao,Pijao,cabecera,4.3343,-75.7046,,
+quimbaya,Plaza de Bolívar de Quimbaya,Quimbaya,cabecera,4.6235,-75.7633,,
+salento,Plaza de Bolívar de Salento,Salento,cabecera,4.6377,-75.5709,,
+parque_del_cafe,Parque Nacional del Café,Montenegro,atractivo,4.5390,-75.7718,360,"criterio del grupo: parque temático de jornada completa (atracciones, show y recorrido del café); se asumen 6 h"
+panaca,PANACA,Quimbaya,atractivo,4.6337,-75.7954,360,criterio del grupo: parque temático agropecuario de jornada completa con exhibiciones programadas; se asumen 6 h
+valle_de_cocora,Valle de Cocora,Salento,atractivo,4.6380,-75.4870,300,criterio del grupo: caminata de medio día por el valle de las palmas de cera; se asumen 5 h
+reserva_acaime,Reserva Natural Acaime,Salento,atractivo,4.6280,-75.4630,120,criterio del grupo: sendero corto de reserva natural con avistamiento de colibríes; se asumen 2 h
+jardin_botanico,Jardín Botánico del Quindío,Calarcá,atractivo,4.5180,-75.6470,150,criterio del grupo: recorrido guiado por senderos y mariposario; se asumen 2 h 30 min
+museo_oro_quimbaya,Museo del Oro Quimbaya,Armenia,atractivo,4.5550,-75.6610,90,criterio del grupo: museo de salas pequeñas; se asume 1 h 30 min
+parque_de_la_vida,Parque de la Vida,Armenia,atractivo,4.5428,-75.6680,60,criterio del grupo: parque urbano para recorrido a pie; se asume 1 h
+parque_fundadores,Parque Fundadores,Armenia,atractivo,4.5480,-75.6620,45,criterio del grupo: parque urbano pequeño; se asumen 45 min
+colina_iluminada,Mirador Colina Iluminada,Filandia,atractivo,4.6760,-75.6610,60,criterio del grupo: mirador con subida y permanencia corta; se asume 1 h
+alto_de_la_cruz,Mirador Alto de la Cruz y Calle Real,Salento,atractivo,4.6390,-75.5680,90,criterio del grupo: caminata por la Calle Real y subida al mirador; se asume 1 h 30 min
+parque_los_arrieros,Parque Temático Los Arrieros,Quimbaya,atractivo,4.6000,-75.7900,240,criterio del grupo: parque temático de medio día; se asumen 4 h
+penas_blancas,Parque Ecológico Peñas Blancas,Calarcá,atractivo,4.5300,-75.6200,180,criterio del grupo: caminata ecológica de medio día corto; se asumen 3 h
+barbas_bremen,Reserva Natural Barbas-Bremen,Filandia,atractivo,4.7000,-75.6200,180,criterio del grupo: sendero de reserva natural de medio día corto; se asumen 3 h
+recuca,Recorrido de la Cultura Cafetera (Recuca),Calarcá,atractivo,4.4720,-75.6600,180,criterio del grupo: recorrido guiado por una finca cafetera con actividades; se asumen 3 h
+balsaje_rio_la_vieja,Balsaje por el río La Vieja (Puerto Alejandría),Quimbaya,atractivo,4.6650,-75.8300,180,criterio del grupo: paseo en balsa de guadua con traslados; se asumen 3 h
+hacienda_san_alberto,Hacienda Café San Alberto,Buenavista,finca_hotel,4.3580,-75.7370,,
+finca_el_ocaso,Finca El Ocaso,Salento,finca_hotel,4.6500,-75.5900,,
+finca_don_elias,Finca Don Elías,Salento,finca_hotel,4.6530,-75.5960,,
+finca_las_acacias,Finca Las Acacias,Salento,finca_hotel,4.6440,-75.5800,,
+hacienda_bambusa,Hacienda Bambusa,Armenia,finca_hotel,4.4700,-75.7000,,
+hacienda_combia,Hacienda Combia,Calarcá,finca_hotel,4.5100,-75.6560,,
+finca_villa_nora,Finca Villa Nora,Quimbaya,finca_hotel,4.6150,-75.7600,,
+finca_la_coqueta,La Coqueta Coffee Farm,Filandia,finca_hotel,4.6800,-75.6500,,
+coop_caficultores_quimbaya,Cooperativa Departamental de Caficultores del Quindío (sede Quimbaya),Quimbaya,acopio,4.6250,-75.7670,,
+trillaescol,Trilladora de Café de Colombia (Trillaescol),Armenia,acopio,4.4950,-75.7250,,
+la_trilladora_co,La Trilladora Co,Armenia,acopio,4.5230,-75.6720,,
+trilladora_orquideas,Trilladora Orquídeas (Alma del Huila Exportadores),Calarcá,acopio,4.5050,-75.6500,,
+anlu_coffee,Anlu Coffee International (finca El Prado),Montenegro,acopio,4.5600,-75.7650,,

@@ -1,0 +1,11 @@
+origen,destino,explorados_lineal,explorados_cola,tiempo_lineal_ms,tiempo_cola_ms,cociente
+parque_los_arrieros,quimbaya,210,210,41.901368,0.096932,432.2759047579746
+quimbaya,parque_los_arrieros,432,432,84.964471,0.18618,456.35659576753676
+trillaescol,museo_oro_quimbaya,3602,3602,673.937599,1.65772,406.5448923823082
+hacienda_bambusa,parque_de_la_vida,3688,3688,684.241307,1.756807,389.4800663931781
+reserva_acaime,alto_de_la_cruz,46,46,8.870244,0.031279,283.58464145273183
+finca_el_ocaso,valle_de_cocora,2442,2442,460.837125,1.137941,404.9745329503023
+salento,valle_de_cocora,924,924,179.454279,0.405193,442.88593090206393
+calarca,recuca,4829,4829,883.499862,6.983864,126.50588012595894
+filandia,colina_iluminada,50,50,9.639661,0.033273,289.7142127250323
+la_trilladora_co,hacienda_bambusa,5461,5461,981.072052,2.609701,375.93274172022006

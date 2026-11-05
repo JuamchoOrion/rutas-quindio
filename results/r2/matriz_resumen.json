@@ -1,0 +1,17 @@
+{
+  "n": 40,
+  "tiempo_ms": 159.511355,
+  "pares_asimetricos": 765,
+  "pares_totales": 780,
+  "max_diferencia_s": {
+    "valor": 530.1988885706605,
+    "lugar_a": "museo_oro_quimbaya",
+    "lugar_b": "barbas_bremen"
+  },
+  "lugares_mismo_nodo": [
+    [
+      "valle_de_cocora",
+      "reserva_acaime"
+    ]
+  ]
+}

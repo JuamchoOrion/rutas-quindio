@@ -1,0 +1,20 @@
+{
+  "fecha_descarga": "2026-11-05T17:55:26.593906+00:00",
+  "fuente_red": "descarga con OSMnx",
+  "consulta": "Quindío, Colombia",
+  "osmnx": "2.1.1",
+  "overpass_radios_scc": "https://maps.mail.ru/osm/tools/overpass/api",
+  "networkx": "3.7",
+  "tamanos": [
+    {
+      "red": "Red descargada",
+      "nodos": 8877,
+      "aristas": 20245
+    },
+    {
+      "red": "Componente fuertemente conexa",
+      "nodos": 8791,
+      "aristas": 20132
+    }
+  ]
+}

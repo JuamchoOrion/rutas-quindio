@@ -12,10 +12,41 @@ MPH_TO_KMH = 1.609344
 MAX_PLAUSIBLE_KMH = 130.0
 FALLBACK_SPEED_KMH = 30.0
 
-# Velocidad por defecto según el tipo de vía de OSM (``highway``), en km/h.
-# Criterio del grupo, acotado por los límites legales colombianos (citar la norma
-# vigente en el documento técnico): 50 km/h como máximo en zona urbana y valores más
-# bajos para vías de acceso. Ajustar aquí y en la spec si se cambia el criterio.
+# Límite legal por tipo de vía de OSM (``highway``), en km/h (R1-B08).
+# Fuente: Ley 2251 de 2022 (14 de julio), art. 12 y 13, que modifican los art. 106 y 107
+# de la Ley 769 de 2002 (Código Nacional de Tránsito):
+#   * art. 106: vías urbanas ≤ 50 km/h; zonas escolares y residenciales ≤ 30 km/h;
+#   * art. 107: carreteras nacionales y departamentales ≤ 90 km/h; doble calzada sin
+#     pasos peatonales ≤ 120 km/h.
+# http://www.secretariasenado.gov.co/senado/basedoc/ley_2251_2022.html
+# La correspondencia tipo OSM → tipo de vía legal es un supuesto del grupo (specs/R1).
+URBAN_MAX_KMH = 50.0
+RESIDENTIAL_MAX_KMH = 30.0
+HIGHWAY_MAX_KMH = 90.0
+DUAL_CARRIAGEWAY_MAX_KMH = 120.0
+
+LEGAL_MAX_KMH: dict[str, float] = {
+    "motorway": DUAL_CARRIAGEWAY_MAX_KMH,
+    "motorway_link": DUAL_CARRIAGEWAY_MAX_KMH,
+    "trunk": HIGHWAY_MAX_KMH,
+    "trunk_link": HIGHWAY_MAX_KMH,
+    "primary": HIGHWAY_MAX_KMH,
+    "primary_link": HIGHWAY_MAX_KMH,
+    "secondary": HIGHWAY_MAX_KMH,
+    "secondary_link": HIGHWAY_MAX_KMH,
+    "tertiary": HIGHWAY_MAX_KMH,
+    "tertiary_link": HIGHWAY_MAX_KMH,
+    "unclassified": HIGHWAY_MAX_KMH,
+    "road": HIGHWAY_MAX_KMH,
+    "track": HIGHWAY_MAX_KMH,
+    "service": URBAN_MAX_KMH,
+    "residential": RESIDENTIAL_MAX_KMH,
+    "living_street": RESIDENTIAL_MAX_KMH,
+}
+
+# Velocidad por defecto del modelo cuando el tramo no tiene ``maxspeed`` (R1-B08).
+# Criterio del grupo: nunca supera LEGAL_MAX_KMH (caso R1-C14) y queda por debajo del
+# límite en vías rurales de montaña, donde la geometría no permite circular al máximo.
 DEFAULT_SPEED_KMH: dict[str, float] = {
     "motorway": 80.0,
     "trunk": 80.0,
@@ -64,8 +95,13 @@ def parse_maxspeed(raw: str | list | None) -> float | None:
     return min(speeds) if speeds else None
 
 
-def edge_speed_kmh(maxspeed_raw: str | list | None, highway_raw: str | list | None) -> tuple[float, str]:
-    """Velocidad del tramo y su origen: ``maxspeed``, ``highway_default`` o ``fallback``."""
+def edge_speed_kmh(
+    maxspeed_raw: str | list | None, highway_raw: str | list | None
+) -> tuple[float, str]:
+    """Velocidad del tramo y su origen: ``maxspeed``, ``highway_default`` o ``fallback``.
+
+    Prioridad de R1-B08; el origen se devuelve para el conteo de R1-B09.
+    """
     speed = parse_maxspeed(maxspeed_raw)
     if speed is not None:
         return speed, "maxspeed"

@@ -1,0 +1,3 @@
+red,V,E,densidad,matriz_mb,listas_mb,supuestos
+Red descargada,8877,20245,0.00025691256276290153,630.409032,0.556896,matriz: 8 B/celda; listas: 8 B/cabecera + 24 B/entrada
+Componente fuertemente conexa,8791,20132,0.0002605015799281074,618.253448,0.553496,matriz: 8 B/celda; listas: 8 B/cabecera + 24 B/entrada

@@ -85,14 +85,63 @@ sección 22.3 (Teorema 22.6, correctitud de Dijkstra).
 
 ## Experimento
 
-- Cola de prioridad: ≥ 20 pares origen-destino del catálogo.
-- Lineal: 10 de esos pares, entre lugares del mismo municipio o de municipios vecinos.
-- Archivo `results/r2/dijkstra_mediciones.csv`:
-  `origen, destino, version, tiempo_viaje_s, nodos_explorados, tiempo_ms`
-  con `version ∈ {lineal, cola_prioridad}`.
-- Gráfica: nodos explorados (x) vs tiempo ms (y), un color por versión.
-- Cociente `tiempo_lineal / tiempo_cola` en los 10 pares: mediana, mínimo, máximo.
-- Matriz: `results/r2/matriz_tiempos.csv`; primera fila y primera columna son ids.
+Script: `scripts/run_r2.py`. Usa la red procesada de R1 (`data/processed/`) y no
+descarga nada.
+
+- **R2-B12. Elección de los pares.** Solo se usan pares ordenados `(origen, destino)`
+  cuyos lugares están en **nodos distintos** de la red (por ejemplo, se excluye
+  Cocora → Acaime, que comparten nodo).
+  - *Cercanos (10):* lugares del **mismo municipio**. Se barajan todos los pares
+    candidatos con `random.Random(SEED)` y se toman en ese orden, saltando los de un
+    municipio que ya tenga **3** pares, hasta completar 10. Así quedan en al menos
+    4 municipios distintos. Se miden con las **dos** versiones.
+  - *Lejanos (10):* lugares de municipios distintos, barajados con
+    `random.Random(SEED + 1)`; se toman los 10 primeros. Solo se miden con la cola de
+    prioridad y sirven para cubrir en la gráfica desde pocos hasta casi todos los
+    nodos explorados.
+  - La cola de prioridad se mide en los 20 pares (≥ 20 que pide el enunciado).
+- **R2-B13. Verificación antes de medir (PE-B06).** Sin NetworkX (regla de
+  implementación propia: las librerías solo se usan en `tests/`), contra la otra
+  implementación propia. El script aborta si falla algo:
+  1. en los 20 pares, `dijkstra_heap(o, d).cost` = `dijkstra_all(o)[d]`
+     (tolerancia relativa 1e-9);
+  2. en los 10 pares cercanos, `dijkstra_linear` y `dijkstra_heap` dan el mismo costo
+     (R2-B11);
+  3. toda ruta devuelta empieza en `o`, termina en `d`, cada paso es una arista
+     existente y la suma de sus pesos (el menor entre aristas paralelas) es el costo;
+  4. la matriz tiene diagonal 0, todas sus celdas son finitas (la red es la CFC) y
+     coincide con los costos de los 20 pares.
+- **R2-B14. Archivos en `results/r2/`.** Tiempos en ms (PE-B04), mediana de 5
+  repeticiones con `rutas.benchmark.measure` (PE-B02, PE-B03).
+
+  | Archivo | Columnas / contenido |
+  |---|---|
+  | `dijkstra_mediciones.csv` | `origen, destino, version, tiempo_viaje_s, nodos_explorados, tiempo_ms, tipo_par, semilla`; `version ∈ {lineal, cola_prioridad}`, `tipo_par ∈ {cercano, lejano}` |
+  | `dijkstra_cociente.csv` | `origen, destino, explorados_lineal, explorados_cola, tiempo_lineal_ms, tiempo_cola_ms, cociente` (10 filas; `cociente = tiempo_lineal_ms / tiempo_cola_ms`) |
+  | `dijkstra_cociente_resumen.csv` | `pares, mediana, minimo, maximo` |
+  | `matriz_tiempos.csv` | celda superior izquierda `id`; primera fila y primera columna con los ids en el orden del catálogo; celdas en segundos |
+  | `matriz_resumen.json` | `n`, `tiempo_ms` (mediana de `travel_time_matrix`), `pares_asimetricos` (pares `i < j` con `M[i][j] ≠ M[j][i]`, tolerancia relativa 1e-9), `max_diferencia_s` (mayor `|M[i][j] − M[j][i]|` y su par), `lugares_mismo_nodo` |
+  | `maquina.json` | `benchmark.machine_info()` (PE-B01) |
+
+  La gráfica (nodos explorados en x, tiempo en ms en y, un color por versión) la
+  genera `scripts/make_figures.py` desde `dijkstra_mediciones.csv` (PE-B08).
+- **R2-B15. Lectura y escritura de la matriz.** `rutas.data_io` ofrece
+  `write_travel_time_matrix(path, ids, matrix)` y
+  `load_travel_time_matrix(path) -> tuple[list[str], list[list[float]]]`, con el
+  formato de R2-B14. R4 y R5 leen la matriz con esta función.
+
+## Discusión esperada (para el documento técnico)
+
+- Con parada temprana, las dos versiones extraen los nodos en el mismo orden (de
+  menor a mayor distancia), así que exploran los **mismos nodos**; solo pueden
+  diferir cuando hay empates de distancia, en cuál de los empatados se extrae antes
+  del destino. Por eso `explorados_lineal ≈ explorados_cola` en cada par.
+- Si se exploran `x` nodos, la lineal hace `x` barridos de los `V` nodos, Θ(x·V),
+  y la cola hace Θ((x + aristas relajadas) · log V). Como las aristas relajadas son
+  ≈ grado medio · x, el cociente es ≈ `V / log V` por una constante que no depende
+  del par: se espera **aproximadamente constante**, del orden de `V / log V`
+  (con V = 8 791, `V / log₂ V` ≈ 670), y la constante la fijan los costos reales
+  de cada operación en Python.
 
 ## Casos de prueba
 
@@ -115,6 +164,7 @@ Distancias desde 0: `[0, 3, 1, 4, 7]`; ruta 0→4: `[0, 2, 1, 3, 4]`.
 | R2-C08 | Rutas devueltas en R2-C07 | la suma de pesos de la ruta es igual a `cost` y cada paso es una arista existente |
 | R2-C09 | `travel_time_matrix` sobre un grafo asimétrico | diagonal 0 y `M[i][j] ≠ M[j][i]` donde corresponde |
 | R2-C10 | Grafo con peso negativo | `ValueError` al construir |
+| R2-C11 | `write_travel_time_matrix` y luego `load_travel_time_matrix` con ids y una matriz asimétrica con decimales | mismos ids, mismo orden y mismos valores (exactos) |
 
 ## Fuera de alcance
 

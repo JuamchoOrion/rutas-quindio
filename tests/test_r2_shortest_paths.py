@@ -6,6 +6,7 @@ import random
 import networkx as nx
 import pytest
 
+from rutas.data_io import load_travel_time_matrix, write_travel_time_matrix
 from rutas.graph import Graph
 from rutas.shortest_paths import (
     dijkstra_all,
@@ -109,3 +110,13 @@ def test_R2_C09_matrix_is_asymmetric_with_zero_diagonal():
 def test_R2_C10_negative_weight_is_rejected():
     with pytest.raises(ValueError):
         Graph.from_edges([0, 1], [(0, 1, -1)])
+
+
+def test_R2_C11_matrix_roundtrip(tmp_path):
+    """La matriz escrita se lee con los mismos ids, orden y valores exactos (R2-B15)."""
+    ids = ["armenia", "salento", "filandia"]
+    matrix = [[0.0, 1234.5678901234, 0.1 + 0.2], [987.654321, 0.0, 3600.0], [1e-9, 42.0, 0.0]]
+    path = tmp_path / "matriz_tiempos.csv"
+    write_travel_time_matrix(path, ids, matrix)
+    assert load_travel_time_matrix(path) == (ids, matrix)
+    assert path.read_text(encoding="utf-8").splitlines()[0] == "id,armenia,salento,filandia"

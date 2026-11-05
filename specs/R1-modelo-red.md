@@ -35,7 +35,10 @@ Graph.from_edges(node_ids, edges) -> Graph                        # listas de ad
 
 ### 1. Representación
 
-- **R1-B01.** La estimación de memoria usa el V y E reales de la red descargada.
+- **R1-B01.** La estimación de memoria se calcula con el V y E reales de **dos** redes:
+  la red descargada (lo que pide el enunciado) y la CFC (la que usan R2–R5). La
+  decisión de R1-B05 se argumenta con la CFC; la red descargada se reporta para
+  mostrar que la conclusión no cambia.
 - **R1-B02.** Matriz de adyacencia: `V² × bytes_por_celda`. Supuesto por defecto:
   una celda guarda el tiempo de viaje como `float64` (8 B). Si se quiere guardar
   también la distancia, son 16 B por celda.
@@ -58,8 +61,29 @@ Graph.from_edges(node_ids, edges) -> Graph                        # listas de ad
      si es una lista se toma la **mínima**, criterio conservador).
   2. Si no, una velocidad por defecto según el tipo de vía (`highway`), tomada de
      la tabla `DEFAULT_SPEED_KMH` (si `highway` es lista, se usa el primer tipo
-     reconocido). La tabla se justifica en el documento técnico con la norma de
-     velocidades colombiana vigente (citar la fuente exacta).
+     reconocido). La tabla se justifica con la norma vigente: **Ley 2251 de 2022**
+     (14 de julio), art. 12 y 13, que modifican los art. 106 y 107 de la Ley 769 de
+     2002 ([texto oficial](http://www.secretariasenado.gov.co/senado/basedoc/ley_2251_2022.html)):
+     vías urbanas ≤ 50 km/h, zonas escolares y residenciales ≤ 30 km/h, carreteras
+     nacionales y departamentales ≤ 90 km/h, doble calzada sin pasos peatonales
+     ≤ 120 km/h. Cada tipo tiene su límite legal en `LEGAL_MAX_KMH` y la velocidad
+     por defecto nunca lo supera (R1-C14):
+
+     | `highway` | Tipo de vía (supuesto del grupo) | Límite legal | Por defecto |
+     |---|---|---|---|
+     | `motorway`, `motorway_link` | doble calzada | 120 | 80 / 50 |
+     | `trunk`, `trunk_link` | carretera nacional | 90 | 80 / 40 |
+     | `primary`, `primary_link` | carretera nacional o departamental | 90 | 60 / 40 |
+     | `secondary`, `secondary_link` | carretera departamental | 90 | 50 / 30 |
+     | `tertiary`, `tertiary_link` | vía terciaria (rural) | 90 | 40 / 30 |
+     | `unclassified`, `road`, `track` | vía rural menor | 90 | 30 / 30 / 20 |
+     | `service` | vía urbana de servicio | 50 | 20 |
+     | `residential`, `living_street` | zona residencial | 30 | 30 / 20 |
+
+     Las vías rurales quedan por debajo del límite porque en la montaña del Quindío
+     la geometría no permite ir al máximo. El art. 106 nombra las "carreteras
+     municipales" en su título, pero su texto solo fija el tope urbano; por eso las
+     vías rurales se acotan con el tope general de 90 km/h.
   3. Si el tipo tampoco se reconoce, `FALLBACK_SPEED_KMH = 30`.
 - **R1-B09.** `edge_speed_kmh` devuelve también el **origen** de la velocidad
   (`"maxspeed"`, `"highway_default"`, `"fallback"`) para poder reportar cuántos
@@ -98,7 +122,31 @@ Graph.from_edges(node_ids, edges) -> Graph                        # listas de ad
   - `red_cfc.graphml` (la CFC con `length_m` y `travel_time_s` en cada arista),
   - `lugares_nodos.csv` (`id, nodo_osm, distancia_m, lejano`),
   - `red_resumen.json` (V y E antes/después, fecha de descarga, versión OSMnx).
-- **R1-B19.** La fecha de descarga se guarda en ISO 8601.
+- **R1-B19.** La fecha de descarga se guarda en ISO 8601. Si se usa el GraphML del
+  docente (`data/raw/quindio.graphml`) en lugar de descargar, `red_resumen.json`
+  lo indica en `fuente_red` y la fecha es la de modificación del archivo. Cuando el
+  script descarga, guarda la fecha y la fuente en `data/raw/quindio_descarga.json`
+  para conservarlas si se vuelve a ejecutar sobre la misma red.
+
+### 6. Archivos de resultados
+
+- **R1-B25.** `scripts/build_network.py` escribe en `results/r1/`:
+
+  | Archivo | Columnas / contenido | Regla |
+  |---|---|---|
+  | `maquina.json` | `benchmark.machine_info()` | PE-B01 |
+  | `red_tamanos.csv` | `red, nodos, aristas` (red descargada y CFC) | punto 5 del enunciado |
+  | `memoria.csv` | `red, V, E, densidad, matriz_mb, listas_mb, supuestos` (una fila por red) | R1-B01 a B04 |
+  | `velocidades_origen.csv` | `origen, aristas` | R1-B09 |
+  | `scc_tiempos.csv` | `red, V, E, V_mas_E, tiempo_ms` | R1-B14 |
+  | `lugares_lejanos.csv` | `id, nodo_osm, distancia_m, lejano` (con encabezado aunque no haya filas) | R1-B17 |
+
+  La medición por radios (R1-B13) se hace al **final**, porque depende de nuevas
+  descargas de Overpass: si falla, el grafo procesado ya quedó guardado.
+  El catálogo se valida **antes** de descargar: si no cumple R1-B20 a B24 el script
+  termina sin hacer nada. El centro de los radios de R1-B13 es la constante
+  `PLAZA_BOLIVAR_ARMENIA`, que debe coincidir con el lugar `armenia` del catálogo
+  (CAT-B05 en [`catalogo.md`](catalogo.md)); el script aborta si no coinciden.
 
 ### Catálogo
 
@@ -138,6 +186,7 @@ Graph.from_edges(node_ids, edges) -> Graph                        # listas de ad
 | R1-C11 | Catálogo con 39 lugares | `validate_catalog` reporta el faltante |
 | R1-C12 | Catálogo con un atractivo sin duración | error que menciona su id |
 | R1-C13 | `Graph.from_edges` con aristas paralelas | conserva ambas; `n_edges` las cuenta |
+| R1-C14 | `DEFAULT_SPEED_KMH` frente a `LEGAL_MAX_KMH` | mismos tipos; cada velocidad > 0 y ≤ su límite legal |
 
 ## Fuera de alcance
 

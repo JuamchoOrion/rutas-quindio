@@ -30,7 +30,10 @@ COUNTEREXAMPLE = [
 
 
 def random_asymmetric_matrix(rng: random.Random, n: int) -> list[list[float]]:
-    return [[0.0 if i == j else round(rng.uniform(60, 3600), 2) for j in range(n)] for i in range(n)]
+    return [
+        [0.0 if i == j else round(rng.uniform(60, 3600), 2) for j in range(n)]
+        for i in range(n)
+    ]
 
 
 def assert_valid_tour(tour: Tour, costs) -> None:
@@ -75,15 +78,23 @@ def test_R4_C07_held_karp_table_size():
     assert held_karp_table_bytes(12) == 589_824
 
 
+@ALL_METHODS
 @pytest.mark.parametrize(
-    "bad", [[[0, 1], [1]], [[0, -1], [1, 0]], []]
+    "bad",
+    [
+        [],                          # vacía
+        [[0, 1], [1]],               # no cuadrada
+        [[0, -1], [1, 0]],           # valor negativo
+        [[0, float("nan")], [1, 0]], # NaN
+        [[0, 1], [1, 2]],            # diagonal distinta de 0
+    ],
 )
-def test_R4_C10_invalid_matrix(bad):
+def test_R4_C10_invalid_matrix(solve, bad):
     with pytest.raises(ValueError):
-        held_karp(bad)
+        solve(bad)
 
 
-def test_instance_matrix_selects_start_first():
+def test_R4_C11_instance_matrix_selects_start_first():
     full = [[0, 1, 2], [3, 0, 4], [5, 6, 0]]
     assert instance_matrix(full, start=2, places=[0]) == [[0, 5], [2, 0]]
 
