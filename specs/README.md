@@ -36,6 +36,7 @@ corrige primero la spec** (en un commit propio) y después el código.
 | [R4-ruta-optima.md](R4-ruta-optima.md) | ATSP: fuerza bruta, Held-Karp, heurística voraz, itinerario | 25 % |
 | [R5-aplicacion.md](R5-aplicacion.md) | Aplicación demostrativa | 5 % |
 | [protocolo-experimental.md](protocolo-experimental.md) | Reglas comunes de medición | — |
+| [catalogo.md](catalogo.md) | Verificación del catálogo de lugares (remite a R1-B20..B24) | — |
 
 ## Plantilla de una spec
 

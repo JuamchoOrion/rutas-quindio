@@ -48,6 +48,7 @@ class DayPlan:
         return self.travel_total_s + self.visit_total_s
 
     def fits(self, budget_s: float = WORKDAY_S) -> bool:
+        """Jornada = desplazamientos + visitas; cabe si es ≤ 11 h (R4-B16)."""
         return self.total_s <= budget_s
 
 

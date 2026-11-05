@@ -47,6 +47,14 @@ def test_R3_C10_prepare_rounds_ties_up():
     assert prepare_points([0.5, -0.5], [2.5, -2.5]) == [(1, 3), (0, -2)]
 
 
+def test_R3_C11_tie_at_max_distance_excludes_middle_point():
+    """R3-B08: con tres puntos empatados a la distancia máxima, el del medio no es vértice."""
+    points = [(0, 0), (10, 0), (5, 5), (2, 5), (8, 5)]
+    hull = quickhull(points)
+    assert hull == [(0, 0), (10, 0), (8, 5), (2, 5)]
+    assert set(hull) == scipy_vertices(points)
+
+
 @pytest.mark.parametrize("seed", range(50))
 def test_R3_C07_C09_random_clouds_match_scipy(seed):
     rng = random.Random(seed)
