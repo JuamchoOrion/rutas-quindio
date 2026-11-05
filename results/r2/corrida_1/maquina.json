@@ -1,0 +1,9 @@
+{
+  "procesador": "AMD Ryzen 7 7445HS w/ Radeon 740M Graphics",
+  "nucleos_logicos": 12,
+  "ram_gb": 16.0,
+  "sistema_operativo": "Linux 7.2.5-3-omarchy",
+  "python": "3.14.7",
+  "implementacion": "CPython",
+  "semilla": 20262
+}

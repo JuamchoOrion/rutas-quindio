@@ -17,12 +17,10 @@ el script lo usa en lugar de descargar (R1-B19).
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 from collections import Counter
 from collections.abc import Sequence
 from datetime import datetime, timezone
-from pathlib import Path
 
 import networkx as nx
 import numpy as np
@@ -31,6 +29,7 @@ import osmnx as ox
 from rutas import paths
 from rutas.benchmark import machine_info, measure
 from rutas.catalog import DEFAULT_START_ID, Place, load_catalog, validate_catalog
+from rutas.data_io import write_csv, write_json
 from rutas.geo import FAR_THRESHOLD_M, nearest_node, to_utm, to_utm_many
 from rutas.network_model import edge_speed_kmh, estimate_memory, travel_time_s
 
@@ -175,24 +174,10 @@ def associate_places(component: nx.MultiDiGraph, places: Sequence[Place]) -> lis
     return rows
 
 
-def write_csv(path: Path, rows: list[dict], fieldnames: Sequence[str] | None = None) -> None:
-    """Escribe ``rows`` con encabezado, aunque no haya filas si se da ``fieldnames`` (R1-B25)."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    columns = list(fieldnames) if fieldnames is not None else list(rows[0]) if rows else []
-    with open(path, "w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=columns)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def write_json(path: Path, data: dict) -> None:
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--sin-tiempos-scc", action="store_true", help="omite R1-B13 (radios)")
-    parser.add_argument("--overpass-url", help="servidor Overpass alterno (por defecto el de OSMnx)")
+    parser.add_argument("--overpass-url", help="servidor Overpass alterno (por defecto, OSMnx)")
     args = parser.parse_args()
     if args.overpass_url:
         ox.settings.overpass_url = args.overpass_url
