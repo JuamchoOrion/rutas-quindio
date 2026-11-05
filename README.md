@@ -14,12 +14,12 @@ casos de prueba, y cada caso tiene una prueba en `tests/` con el mismo ID.
 
 | Requerimiento | Spec | Algoritmos y pruebas | Experimentos | Documento |
 |---|---|---|---|---|
-| R1 Modelo de la red | ✅ | ✅ pesos, memoria, UTM, catálogo | ⏳ ejecutar `build_network.py` | ⏳ |
-| R2 Caminos mínimos | ✅ | ✅ Dijkstra lineal y con cola | ⏳ `run_r2.py` | ⏳ |
+| R1 Modelo de la red | ✅ | ✅ pesos, memoria, UTM, catálogo | ✅ `results/r1/` (catálogo provisional) | ⏳ |
+| R2 Caminos mínimos | ✅ | ✅ Dijkstra lineal y con cola | ✅ `results/r2/` | ⏳ |
 | R3 Envolvente convexa | ✅ | ✅ QuickHull entero | ⏳ `run_r3.py` | ⏳ |
 | R4 Ruta óptima | ✅ | ✅ fuerza bruta, Held-Karp, voraz, itinerario | ⏳ `run_r4.py` | ⏳ |
-| R5 Aplicación | ✅ | ⏳ | — | ⏳ |
-| Catálogo (≥ 40 lugares) | ✅ | validador ✅ | ⏳ llenar `data/catalogo.csv` | ⏳ |
+| R5 Aplicación | ✅ | ✅ `app/app.py` | — | ⏳ |
+| Catálogo (≥ 40 lugares) | ✅ | validador ✅ | ✅ 40 lugares; coordenadas por verificar | ⏳ |
 
 ## Estructura
 
@@ -35,7 +35,9 @@ src/rutas/             Paquete con los algoritmos (implementación propia)
   tsp.py               Fuerza bruta, Held-Karp, vecino más cercano  R4
   itinerary.py         Itinerario de un día (11 h)                  R4
   benchmark.py         Protocolo experimental (mediana, límite 5 min)
-  data_io.py, paths.py Carga del grafo procesado y rutas de archivos
+  app_support.py       Lógica de la aplicación (sin Streamlit)      R5
+  data_io.py, paths.py Carga del grafo procesado, matriz y rutas de archivos
+app/app.py             Aplicación demostrativa (Streamlit + Folium) R5
 tests/                 Pruebas (pytest); los nombres llevan el ID del caso de la spec
 scripts/               Descarga de la red y experimentos
 data/                  catalogo.csv, raw/ (no versionado), processed/
@@ -50,7 +52,8 @@ Requiere Python ≥ 3.11.
 ```bash
 python -m venv .venv
 source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -e ".[red,dev]"          # agregar ",app" para la aplicación
+pip install -e ".[red,dev]"          # algoritmos, scripts y pruebas
+pip install -e ".[red,app]"          # aplicación (R5)
 ```
 
 ## Uso
@@ -63,11 +66,35 @@ pytest
 python scripts/inspect_scc.py
 
 # 3. R1: descargar la red, pesos, CFC, asociar lugares y guardar (requiere internet
-#    y un catálogo válido en data/catalogo.csv)
+#    y un catálogo válido en data/catalogo.csv). Si overpass-api.de rechaza la
+#    conexión, agregar --overpass-url https://maps.mail.ru/osm/tools/overpass/api
 python scripts/build_network.py
+
+# 4. R2: verificar y medir Dijkstra; matriz de tiempos (results/r2/)
+python scripts/run_r2.py
 ```
 
-Los scripts de R2–R4 y la aplicación se agregan en las siguientes iteraciones.
+## Aplicación (R5)
+
+La red procesada (`data/processed/`) y los resultados (`results/`) ya están en el
+repositorio, así que la aplicación funciona sin internet y sin ejecutar nada antes:
+
+```bash
+pip install -e ".[red,app]"
+streamlit run app/app.py
+```
+
+Se abre en el navegador (por defecto en <http://localhost:8501>) con cuatro pestañas:
+
+| Pestaña | Qué hace |
+|---|---|
+| Ruta origen-destino | Elige dos lugares, ejecuta Dijkstra con cola de prioridad en el momento y dibuja la ruta con su tiempo y los nodos explorados |
+| Envolvente convexa | Dibuja la envolvente de R3 (`results/r3/envolvente_red.json`) y los lugares del catálogo |
+| Itinerario | Elige la partida (Armenia por defecto) y de 6 a 8 atractivos; compara Held-Karp con el vecino más cercano y arma el plan de 11 h |
+| Resultados | Muestra las tablas (CSV) y gráficas (PNG) de `results/r1` a `results/r4` |
+
+Si falta algún archivo de `results/` (por ejemplo, antes de ejecutar `run_r3.py`), la
+pestaña correspondiente muestra qué script lo genera.
 
 ## Convenciones
 
