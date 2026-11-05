@@ -1,0 +1,19 @@
+# Tema de la aplicación (R5). Paleta cálida de la región cafetera; los colores de
+# los mapas están en app/app.py y se validaron para daltonismo y contraste.
+[theme]
+base = "light"
+primaryColor = "#7a4a2a"            # café: botones y selección
+backgroundColor = "#faf7f2"         # crema
+secondaryBackgroundColor = "#f1ebe2"
+textColor = "#2b2420"
+font = "sans serif"
+borderColor = "#e2d9cc"
+showWidgetBorder = true
+codeTextColor = "#7a4a2a"
+codeBackgroundColor = "#f1ebe2"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false

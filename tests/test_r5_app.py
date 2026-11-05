@@ -21,6 +21,7 @@ CE = [
 VISIT_MIN = 10
 APP_TIMEOUT_S = 120
 N_ATTRACTIONS = 7          # R5-C04: dentro del rango de 6 a 8.
+SECTIONS = ("Ruta", "Envolvente", "Itinerario", "Resultados")
 
 
 def test_R5_C06_compare_tours_gap_over_travel():
@@ -72,21 +73,31 @@ def test_R5_C10_result_files_skip_subfolders(tmp_path):
 
 @pytest.mark.slow
 def test_R5_C11_app_runs_without_exceptions():
-    """La app completa se ejecuta, calcula una ruta y un itinerario de 7 atractivos."""
+    """La app se ejecuta en cada pestaña, calcula una ruta y un itinerario de 7 atractivos."""
     if not paths.NETWORK_GRAPHML.exists() or not paths.RESULTS.is_dir():
         pytest.skip("Faltan data/processed/ o results/ (ejecutar R1 y R2)")
     testing = pytest.importorskip("streamlit.testing.v1")
 
-    app = testing.AppTest.from_file(str(paths.ROOT / "app" / "app.py"),
-                                    default_timeout=APP_TIMEOUT_S).run()
-    assert not app.exception
+    def open_tab(section: str):
+        """Solo se ejecuta la pestaña abierta; se elige con ?seccion= (bind a la URL)."""
+        app = testing.AppTest.from_file(str(paths.ROOT / "app" / "app.py"),
+                                        default_timeout=APP_TIMEOUT_S)
+        app.query_params["seccion"] = section
+        return app.run()
 
-    app.button[0].click().run()                    # Calcular ruta (Armenia → Salento)
-    assert not app.exception
+    for section in SECTIONS:
+        assert not open_tab(section).exception, section
+
+    route = open_tab("Ruta")
+    route.button[0].click().run()                  # Calcular ruta (Armenia → Salento)
+    assert not route.exception
+    assert any(metric.label == "Tiempo de viaje" for metric in route.metric)
 
     if (paths.R2 / "matriz_tiempos.csv").exists():
         attractions = [place.id for place in load_catalog(paths.CATALOG_CSV)
                        if place.category == "atractivo"][:N_ATTRACTIONS]
-        app.multiselect(key="itinerary_places").set_value(attractions).run()
-        app.button[1].click().run()                # Calcular itinerario
-        assert not app.exception
+        itinerary = open_tab("Itinerario")
+        itinerary.multiselect(key="itinerary_places").set_value(attractions).run()
+        itinerary.button[0].click().run()          # Calcular itinerario
+        assert not itinerary.exception
+        assert any(metric.label == "Duración de la jornada" for metric in itinerary.metric)
