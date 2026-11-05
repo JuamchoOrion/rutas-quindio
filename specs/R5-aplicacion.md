@@ -65,6 +65,19 @@ Tecnología: **Streamlit** (interfaz web local con un solo comando) + **Folium**
 - **R5-B10. Carga única.** La red, el catálogo y la matriz se cargan una sola vez por
   sesión (`st.cache_resource`), no en cada interacción.
 
+- **R5-B11. Resultado de la selección actual.** La ruta y el itinerario se guardan
+  junto con los datos de entrada que los produjeron; si el usuario cambia la
+  selección sin volver a calcular, no se muestra el resultado anterior, sino la
+  indicación de pulsar el botón.
+- **R5-B12. Pestañas y mapas.** Solo se ejecuta la pestaña abierta
+  (`st.tabs(..., on_change="rerun")`), que queda en la URL (`?seccion=`): un mapa
+  de Leaflet creado en una pestaña oculta tiene ancho 0 y se muestra como el mundo
+  repetido. Los mapas parten centrados en el Quindío, con zoom mínimo 8 y límites en
+  la región. Mapa base: gris claro de Esri (sin clave) con capa de nombres;
+  OpenStreetMap como alternativa en el control de capas. Los colores de categorías y
+  recorridos se validaron para daltonismo y contraste, y el vecino más cercano se
+  dibuja punteado (no se distingue solo por color).
+
 ## Casos de prueba
 
 Automáticos (`tests/test_r5_app.py`):
@@ -76,7 +89,7 @@ Automáticos (`tests/test_r5_app.py`):
 | R5-C08 | `hull_latlons` con un JSON de 4 vértices UTM | 4 pares (lat, lon), cada uno igual a `to_latlon` de su vértice |
 | R5-C09 | `hull_latlons` / `result_files` con archivos que no existen | `None` y listas vacías, sin excepción (R5-B06) |
 | R5-C10 | `result_files` sobre una carpeta con CSV, PNG y una subcarpeta | solo los archivos de la carpeta, en orden alfabético (R5-B09) |
-| R5-C11 | La app completa con `streamlit.testing` (AppTest) | se ejecuta sin excepciones con los datos del repositorio; `pytest.skip` si faltan `data/processed/` o `results/` |
+| R5-C11 | La app completa con `streamlit.testing` (AppTest), abriendo cada pestaña con `?seccion=` | se ejecuta sin excepciones en las cuatro pestañas, calcula una ruta y un itinerario de 7 atractivos; `pytest.skip` si faltan `data/processed/` o `results/` |
 
 Manuales (con captura en el documento técnico):
 
