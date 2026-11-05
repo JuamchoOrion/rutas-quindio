@@ -4,6 +4,7 @@ import json
 
 import networkx as nx
 import pytest
+from shapely.geometry import LineString  # Solo en pruebas, para construir la geometry.
 
 from rutas import paths
 from rutas.app_support import compare_tours, hull_latlons, result_files, route_latlons
@@ -41,9 +42,40 @@ def test_R5_C07_route_latlons_in_path_order():
     nx_graph = nx.MultiDiGraph()
     for node_id, (lat, lon) in {10: (4.5, -75.6), 20: (4.6, -75.7), 30: (4.7, -75.8)}.items():
         nx_graph.add_node(node_id, y=lat, x=lon)
+    nx_graph.add_edge(10, 20, travel_time_s=1.0)   # Sin geometry: tramos rectos.
+    nx_graph.add_edge(20, 30, travel_time_s=1.0)
     graph = Graph.from_edges([10, 20, 30], [(10, 20, 1.0), (20, 30, 1.0)])
     path = [graph.index_of(10), graph.index_of(20), graph.index_of(30)]
     assert route_latlons(nx_graph, graph, path) == [(4.5, -75.6), (4.6, -75.7), (4.7, -75.8)]
+
+
+def curved_graph(geometry_coords_lonlat):
+    """Ruta 10 → 20 → 30; el tramo 10 → 20 tiene geometry (lon, lat) y 20 → 30 no."""
+    nx_graph = nx.MultiDiGraph()
+    for node_id, (lat, lon) in {10: (4.50, -75.60), 20: (4.60, -75.70),
+                                30: (4.70, -75.80)}.items():
+        nx_graph.add_node(node_id, y=lat, x=lon)
+    nx_graph.add_edge(10, 20, travel_time_s=5.0, geometry=LineString(geometry_coords_lonlat))
+    nx_graph.add_edge(10, 20, travel_time_s=9.0)          # Paralela más lenta: no se dibuja.
+    nx_graph.add_edge(20, 30, travel_time_s=1.0)
+    graph = Graph.from_edges([10, 20, 30], [(10, 20, 5.0), (10, 20, 9.0), (20, 30, 1.0)])
+    return nx_graph, graph, [graph.index_of(10), graph.index_of(20), graph.index_of(30)]
+
+
+def test_R5_C12_route_follows_edge_geometry():
+    curve = [(-75.60, 4.50), (-75.62, 4.58), (-75.68, 4.59), (-75.70, 4.60)]
+    nx_graph, graph, path = curved_graph(curve)
+    assert route_latlons(nx_graph, graph, path) == [
+        (4.50, -75.60), (4.58, -75.62), (4.59, -75.68), (4.60, -75.70),   # curva (lat, lon)
+        (4.70, -75.80),                                                   # tramo recto
+    ]
+
+
+def test_R5_C13_reversed_geometry_is_drawn_from_u_to_v():
+    reversed_curve = [(-75.70, 4.60), (-75.68, 4.59), (-75.62, 4.58), (-75.60, 4.50)]
+    nx_graph, graph, path = curved_graph(reversed_curve)
+    points = route_latlons(nx_graph, graph, path)
+    assert points[:4] == [(4.50, -75.60), (4.58, -75.62), (4.59, -75.68), (4.60, -75.70)]
 
 
 def test_R5_C08_hull_latlons_from_r3_format(tmp_path):

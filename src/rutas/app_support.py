@@ -1,11 +1,12 @@
 """Lógica de la aplicación demostrativa, sin Streamlit, para poder probarla con pytest.
 
-Spec: specs/R5-aplicacion.md (R5-B03, R5-B06 a R5-B09; casos R5-C06 a R5-C10).
+Spec: specs/R5-aplicacion.md (R5-B03, R5-B06 a R5-B09; casos R5-C06 a R5-C13).
 """
 
 from __future__ import annotations
 
 import json
+import math
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -67,9 +68,46 @@ def compare_tours(costs: Matrix, visit_min: Sequence[float]) -> TourComparison:
 
 
 def route_latlons(nx_graph, graph: Graph, path: Sequence[int]) -> list[LatLon]:
-    """(lat, lon) de cada nodo de una ruta de índices de ``graph``, en orden (R5-B07)."""
-    nodes = nx_graph.nodes
-    return [(nodes[node_id]["y"], nodes[node_id]["x"]) for node_id in graph.ids_of(path)]
+    """Puntos (lat, lon) para dibujar una ruta de índices de ``graph`` (R5-B07).
+
+    Cada tramo ``u → v`` sigue la forma real de la vía (``geometry`` de OSMnx); si la
+    arista no la tiene, el tramo es recto. Los puntos repetidos en los extremos de dos
+    tramos consecutivos se dibujan una sola vez.
+    """
+    node_ids = graph.ids_of(path)
+    points = [_node_latlon(nx_graph, node_ids[0])] if node_ids else []
+    for u, v in zip(node_ids, node_ids[1:]):
+        for point in _edge_latlons(nx_graph, u, v):
+            if point != points[-1]:
+                points.append(point)
+    return points
+
+
+def _node_latlon(nx_graph, node_id) -> LatLon:
+    node = nx_graph.nodes[node_id]
+    return node["y"], node["x"]
+
+
+def _edge_latlons(nx_graph, u, v) -> list[LatLon]:
+    """Forma del tramo ``u → v`` en (lat, lon), siempre de ``u`` hacia ``v`` (R5-B07).
+
+    Entre aristas paralelas se usa la de menor ``travel_time_s``, la misma que eligió
+    Dijkstra. La ``geometry`` de OSMnx está en (lon, lat) y puede venir al revés.
+    """
+    start, end = _node_latlon(nx_graph, u), _node_latlon(nx_graph, v)
+    edge = min(nx_graph[u][v].values(), key=lambda data: data.get("travel_time_s", math.inf))
+    geometry = edge.get("geometry")
+    if geometry is None:
+        return [start, end]
+    points = [(lat, lon) for lon, lat in geometry.coords]
+    if _squared_distance(points[0], end) < _squared_distance(points[0], start):
+        points.reverse()
+    return points
+
+
+def _squared_distance(a: LatLon, b: LatLon) -> float:
+    """Solo para comparar cercanía entre puntos a pocos metros; no es una distancia real."""
+    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
 
 
 def tour_legs(graph: Graph, nodes: Sequence[int]) -> list[list[int]]:
