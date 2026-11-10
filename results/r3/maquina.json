@@ -1,0 +1,9 @@
+{
+  "procesador": "arm",
+  "nucleos_logicos": 8,
+  "ram_gb": 17.2,
+  "sistema_operativo": "Darwin 27.0.0",
+  "python": "3.12.16",
+  "implementacion": "CPython",
+  "semilla": 20262
+}
