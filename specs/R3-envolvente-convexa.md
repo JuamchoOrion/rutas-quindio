@@ -98,6 +98,17 @@ hulls", *ACM Trans. Math. Software* 22(4), 1996.
 | Nodos de la red | CFC de R1, en UTM, redondeados y sin duplicados |
 | Cuadrado 1 000 / 10 000 / 50 000 | enteros uniformes en `[0, 100 000)²`, semilla `SEED` |
 
+- Cada cuadrado usa su propio `random.Random(SEED)`; cada punto es
+  `(rng.randrange(100 000), rng.randrange(100 000))` y se generan puntos hasta tener
+  `n` distintos (con `SEED`, el de 50 000 tiene un repetido que se descarta).
+- Valores de `conjunto`: `red_vial`, `cuadrado_1000`, `cuadrado_10000`, `cuadrado_50000`.
+- `n_puntos` de `envolvente_red.json` = puntos de la red después de `prepare_points`.
+- Se usa `measure` (5 repeticiones, mediana): todas las ejecuciones duran milisegundos,
+  así que el límite de 5 min de PE-B07 no se alcanza; `measure_with_timeout` no aporta
+  nada aquí.
+- `arr = np.asarray(points, dtype=np.float64)` se construye fuera de la medición; los
+  tiempos se escriben sin redondear.
+
 Archivo `results/r3/envolvente_tiempos.csv`:
 `conjunto, n, vertices, tiempo_propio_ms, tiempo_scipy_ms, cociente, semilla`.
 
