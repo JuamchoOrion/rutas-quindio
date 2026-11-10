@@ -1,5 +1,5 @@
 {
-  "procesador": "arm",
+  "procesador": "Apple M2",
   "nucleos_logicos": 8,
   "ram_gb": 17.2,
   "sistema_operativo": "Darwin 27.0.0",
