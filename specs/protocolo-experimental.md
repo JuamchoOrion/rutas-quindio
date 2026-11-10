@@ -7,7 +7,7 @@ Implementación: `src/rutas/benchmark.py`.
 
 | ID | Regla | Cómo se cumple en el código |
 |---|---|---|
-| PE-B01 | Las mediciones de un requerimiento se hacen en la misma máquina; se reportan CPU, RAM, SO y versión del lenguaje. | `benchmark.machine_info()` genera un diccionario que cada script guarda en `results/<rX>/maquina.json`. |
+| PE-B01 | Las mediciones de un requerimiento se hacen en la misma máquina; se reportan CPU, RAM, SO y versión del lenguaje. | `benchmark.machine_info()` genera un diccionario que cada script guarda en `results/<rX>/maquina.json`. Modelo del procesador: en macOS, la salida de `sysctl -n machdep.cpu.brand_string` (por ejemplo `Apple M2`); si el comando falla o no devuelve nada, se usa el método de los demás sistemas. En los demás sistemas no cambia nada: la línea `model name` de `/proc/cpuinfo` y, si no existe, `platform.processor()` o `platform.machine()`. |
 | PE-B02 | Solo se mide el algoritmo (no lectura de archivos, generación de datos ni impresión). | `measure()` recibe una función ya preparada sin argumentos (`lambda`) y cronometra solo su llamada con `time.perf_counter_ns`. |
 | PE-B03 | Cada medición se repite 5 veces y se reporta la mediana; si una ejecución dura más de 1 minuto, se mide una sola vez. | `measure(fn, repetitions=5)`: si la primera corrida pasa de 60 s, devuelve esa única medición. |
 | PE-B04 | Todos los tiempos en una misma unidad. | Se usa **milisegundos** (`float`) en todos los CSV; la columna se llama `tiempo_ms`. |
@@ -24,3 +24,6 @@ Implementación: `src/rutas/benchmark.py`.
 | PE-C02 | `measure_with_timeout` de una función que duerme 3 s con límite de 1 s | `completed=False`, sin excepción, en poco más de 1 s. |
 | PE-C03 | `measure_with_timeout` de una función rápida | `completed=True` y el valor de retorno disponible. |
 | PE-C04 | `median` de `[5, 1, 3]` y de `[4, 1, 3, 2]` | `3` y `2.5`. |
+| PE-C05 | `_cpu_model()` en macOS con `sysctl` simulado que responde `Apple M2\n` | `"Apple M2"`. |
+| PE-C06 | `_cpu_model()` en macOS con `sysctl` simulado que falla | Devuelve lo mismo que en los demás sistemas (`platform.processor()` o `platform.machine()`), sin excepción. |
+| PE-C07 | `_cpu_model()` en Linux (simulado) | No llama a `sysctl`; devuelve el `model name` de `/proc/cpuinfo`, como antes. |
