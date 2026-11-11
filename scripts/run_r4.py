@@ -46,7 +46,17 @@ EXACT_KS = range(5, 13)                # k = 5..12
 QUALITY_KS = (5, 8, 10, 12)
 QUALITY_INSTANCES = 5
 QUALITY_SEED_STEP = 100                # Semilla de calidad: SEED + 100·k + i.
-ITINERARY_ATTRACTIONS = 8
+# Lista fija del itinerario, elegida por el grupo (spec R4, Experimentos): ejerce R4-B17
+# con un solo atractivo quitado.
+ITINERARY_ATTRACTIONS = (
+    "jardin_botanico",
+    "museo_oro_quimbaya",
+    "parque_de_la_vida",
+    "parque_fundadores",
+    "colina_iluminada",
+    "alto_de_la_cruz",
+    "barbas_bremen",
+)
 ATTRACTION_CATEGORY = "atractivo"
 
 REL_TOL = 1e-9                         # Tolerancia relativa al comparar costos.
@@ -259,12 +269,18 @@ def quality_summary(rows: Sequence[dict]) -> list[dict]:
 # Itinerario de un día (R4-B15 a R4-B18)
 # --------------------------------------------------------------------------- #
 def choose_attractions(inputs: Inputs) -> list[str]:
-    """8 atractivos en el orden del catálogo con ``Random(SEED).sample`` (spec R4)."""
-    attractions = [p.id for p in inputs.places.values() if p.category == ATTRACTION_CATEGORY]
-    chosen = random.Random(SEED).sample(attractions, ITINERARY_ATTRACTIONS)
-    missing = [pid for pid in chosen if inputs.places[pid].visit_min is None]
-    if missing:
-        raise SystemExit(f"Atractivos sin duración de visita en el catálogo: {missing}")
+    """Lista fija ``ITINERARY_ATTRACTIONS``; aborta si algún id no es un atractivo del
+    catálogo con duración de visita (spec R4, Experimentos)."""
+    chosen = list(ITINERARY_ATTRACTIONS)
+    invalid = [
+        pid for pid in chosen
+        if pid not in inputs.places
+        or inputs.places[pid].category != ATTRACTION_CATEGORY
+        or inputs.places[pid].visit_min is None
+    ]
+    if invalid:
+        raise SystemExit("Atractivos no válidos (fuera del catálogo, otra categoría o "
+                         f"sin visita): {invalid}")
     return chosen
 
 

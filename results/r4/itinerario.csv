@@ -1,6 +1,8 @@
 orden,lugar,desplazamiento_min,visita_min,acumulado_h,id
-1,Parque Ecológico Peñas Blancas,10.028189077997514,180.0,3.1671364846332914,penas_blancas
-2,Mirador Alto de la Cruz y Calle Real,28.845474444588696,90.0,5.147894392043104,alto_de_la_cruz
-3,Reserva Natural Barbas-Bremen,22.31146861589352,180.0,8.519752202307995,barbas_bremen
-4,Parque Fundadores,27.585375817668332,45.0,9.729508465935801,parque_fundadores
-Regreso,Plaza de Bolívar de Armenia,4.354033259196025,,9.8020756869224,armenia
+1,Jardín Botánico del Quindío,9.100495530255255,150.0,2.6516749255042544,jardin_botanico
+2,Mirador Alto de la Cruz y Calle Real,27.396824531799158,90.0,4.608288667700906,alto_de_la_cruz
+3,Mirador Colina Iluminada,28.433178955802287,60.0,6.082174983630944,colina_iluminada
+4,Museo del Oro Quimbaya,32.03581722358286,90.0,8.116105270690658,museo_oro_quimbaya
+5,Parque Fundadores,2.575297020677376,45.0,8.909026887701948,parque_fundadores
+6,Parque de la Vida,1.9832809456201999,60.0,9.942081570128952,parque_de_la_vida
+Regreso,Plaza de Bolívar de Armenia,2.889464230489161,,9.990239307303769,armenia
