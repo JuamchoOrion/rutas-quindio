@@ -124,7 +124,9 @@ descarga nada.
   | `maquina.json` | `benchmark.machine_info()` (PE-B01) |
 
   La gráfica (nodos explorados en x, tiempo en ms en y, un color por versión) la
-  genera `scripts/make_figures.py` desde `dijkstra_mediciones.csv` (PE-B08).
+  genera `scripts/make_figures.py` desde `dijkstra_mediciones.csv` (PE-B08) en
+  `results/r2/dijkstra_tiempo_vs_nodos.png` (estilo en PE-B10); las tablas, en
+  `results/tablas/r2.md` (PE-B09).
 - **R2-B15. Lectura y escritura de la matriz.** `rutas.data_io` ofrece
   `write_travel_time_matrix(path, ids, matrix)` y
   `load_travel_time_matrix(path) -> tuple[list[str], list[list[float]]]`, con el
