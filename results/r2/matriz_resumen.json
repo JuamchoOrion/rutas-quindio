@@ -1,12 +1,12 @@
 {
   "n": 40,
-  "tiempo_ms": 159.511355,
-  "pares_asimetricos": 765,
+  "tiempo_ms": 323.363796,
+  "pares_asimetricos": 772,
   "pares_totales": 780,
   "max_diferencia_s": {
-    "valor": 530.1988885706605,
-    "lugar_a": "museo_oro_quimbaya",
-    "lugar_b": "barbas_bremen"
+    "valor": 605.682982260988,
+    "lugar_a": "hacienda_bambusa",
+    "lugar_b": "trillaescol"
   },
   "lugares_mismo_nodo": [
     [

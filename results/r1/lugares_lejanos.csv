@@ -1,10 +1,8 @@
 id,nodo_osm,distancia_m,lejano
-panaca,9473996921,916.2,True
-valle_de_cocora,1543526033,864.1,True
-reserva_acaime,1543526033,2636.4,True
-penas_blancas,4980086542,660.5,True
-barbas_bremen,2752461260,802.9,True
-balsaje_rio_la_vieja,7626996524,2584.7,True
-finca_don_elias,5237243844,558.8,True
-finca_la_coqueta,2681634652,673.1,True
-anlu_coffee,2375707970,535.8,True
+valle_de_cocora,1543526033,1050.9,True
+reserva_acaime,1543526033,3653.9,True
+penas_blancas,4612341644,746.5,True
+barbas_bremen,3227102268,2115.3,True
+finca_las_acacias,9274835466,777.2,True
+hacienda_combia,6387018054,736.6,True
+finca_la_coqueta,2274613243,560.0,True
