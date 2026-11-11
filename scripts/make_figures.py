@@ -1,15 +1,16 @@
 """Gráficas y tablas del documento técnico, generadas solo desde ``results/`` (PE-B08).
 
-Spec: specs/protocolo-experimental.md (PE-B08 a PE-B10), specs/R3-envolvente-convexa.md
-y specs/R4-ruta-optima.md (sección Experimentos).
+Spec: specs/protocolo-experimental.md (PE-B08 a PE-B10), specs/R1-modelo-red.md (R1-B25),
+specs/R2-caminos-minimos.md (R2-B14), specs/R3-envolvente-convexa.md y
+specs/R4-ruta-optima.md (sección Experimentos).
 
-Uso (desde la raíz del repositorio, después de ``run_r3.py`` y ``run_r4.py``):
+Uso (desde la raíz del repositorio, después de ``build_network.py`` y los ``run_rX.py``):
 
     python scripts/make_figures.py
 
-No recalcula ningún algoritmo: lee los CSV y JSON de ``results/`` (y, para el itinerario,
-solo los nombres de ``data/catalogo.csv``). Si falta el archivo de un requerimiento, avisa
-y sigue con los demás.
+No recalcula ningún algoritmo: lee los CSV y JSON de ``results/`` (y, para los lugares
+lejanos de R1 y el itinerario de R4, solo los nombres de ``data/catalogo.csv``). Si falta
+el archivo de un requerimiento, avisa y sigue con los demás.
 """
 
 from __future__ import annotations
@@ -61,6 +62,14 @@ R3_SET_LABELS = {"red_vial": "Nodos de la red"}
 SQUARE_PREFIX = "cuadrado_"
 NOT_COMPLETED = "no completada"
 NO_VISIT = "—"
+PERCENT = 100
+US_PER_MS = 1000
+SPEED_ORIGIN_LABELS = {
+    "maxspeed": "maxspeed de OSM",
+    "highway_default": "Por defecto según el tipo de vía",
+    "fallback": "Velocidad de respaldo",
+}
+DIJKSTRA_VERSIONS = (("cola_prioridad", "Cola de prioridad"), ("lineal", "Lineal"))
 
 
 @dataclass(frozen=True)
@@ -87,10 +96,192 @@ def missing(path: Path) -> bool:
     return True
 
 
+def integer(value: str) -> str:
+    """Cantidad entera con espacio de miles (PE-B09)."""
+    return format_fixed(int(value), 0)
+
+
 # --------------------------------------------------------------------------- #
-# R2: aquí Juan agregará ``figuras_r2()`` (gráfica de dijkstra_mediciones.csv y
-# tablas de R2), con la misma forma que figuras_r3 y figuras_r4.
+# R1: tablas del modelo de la red (la spec de R1 no pide gráfica)
 # --------------------------------------------------------------------------- #
+def size_table(csv_path: Path) -> str:
+    body = [[row["red"], integer(row["nodos"]), integer(row["aristas"])]
+            for row in read_csv(csv_path)]
+    return "\n\n".join(["### Tamaño de la red antes y después de la componente",
+                        markdown_table(["Red", "Nodos", "Aristas"], body),
+                        source_line(csv_path)])
+
+
+def memory_table(csv_path: Path) -> str:
+    rows = read_csv(csv_path)
+    headers = ["Red", "V", "E", "Densidad E/V²", "Matriz (MB)", "Listas (MB)"]
+    body = [[row["red"], integer(row["V"]), integer(row["E"]),
+             format_significant(float(row["densidad"])),
+             format_significant(float(row["matriz_mb"])),
+             format_significant(float(row["listas_mb"]))] for row in rows]
+    assumptions = sorted({row["supuestos"] for row in rows})
+    return "\n\n".join(["### Memoria: matriz de adyacencia frente a listas de adyacencia",
+                        markdown_table(headers, body),
+                        f"Supuestos: {'; '.join(assumptions)}. MB = 10⁶ bytes. "
+                        + source_line(csv_path)])
+
+
+def speed_table(csv_path: Path) -> str:
+    rows = read_csv(csv_path)
+    total = sum(int(row["aristas"]) for row in rows)
+    body = [[SPEED_ORIGIN_LABELS.get(row["origen"], row["origen"]), integer(row["aristas"]),
+             format_fixed(PERCENT * int(row["aristas"]) / total, 1)] for row in rows]
+    return "\n\n".join(["### Origen de la velocidad de cada tramo (R1-B08, R1-B09)",
+                        markdown_table(["Origen", "Aristas", "Porcentaje (%)"], body),
+                        source_line(csv_path)])
+
+
+def scc_table(csv_path: Path) -> str:
+    headers = ["Red", "V", "E", "V+E", "Tiempo (ms)", "Tiempo por elemento (µs)"]
+    body = [[row["red"], integer(row["V"]), integer(row["E"]), integer(row["V_mas_E"]),
+             format_ms(float(row["tiempo_ms"])),
+             format_significant(US_PER_MS * float(row["tiempo_ms"]) / int(row["V_mas_E"]))]
+            for row in read_csv(csv_path)]
+    return "\n\n".join(["### Tiempo de obtener la componente fuertemente conexa",
+                        markdown_table(headers, body),
+                        "Tiempo por elemento = tiempo / (V + E). " + source_line(csv_path)])
+
+
+def far_places_table(csv_path: Path, catalog_csv: Path) -> str:
+    """Lugares a más de 500 m de su nodo (R1-B17), con el nombre del catálogo."""
+    rows = read_csv(csv_path)
+    title = "### Lugares a más de 500 m de la red (R1-B17)"
+    if not rows:
+        return "\n\n".join([title, "Lugares a más de 500 m: ninguno. " + source_line(csv_path)])
+    names = {place.id: place.name for place in load_catalog(catalog_csv)}
+    body = [[names.get(row["id"], row["id"]), row["id"], row["nodo_osm"],
+             format_fixed(float(row["distancia_m"]), 0)] for row in rows]
+    return "\n\n".join([title,
+                        markdown_table(["Lugar", "Id", "Nodo OSM", "Distancia (m)"], body),
+                        source_line(csv_path)])
+
+
+def figuras_r1(
+    r1_dir: Path = paths.R1, tables_dir: Path = TABLES_DIR, catalog_csv: Path = paths.CATALOG_CSV
+) -> None:
+    """Tablas de R1 en ``results/tablas/r1.md`` (PE-B09, PE-C12)."""
+    builders = (("red_tamanos.csv", size_table), ("memoria.csv", memory_table),
+                ("velocidades_origen.csv", speed_table), ("scc_tiempos.csv", scc_table))
+    sections = ["## Requerimiento 1: modelo de la red vial"]
+    sections += [build(r1_dir / name) for name, build in builders
+                 if not missing(r1_dir / name)]
+    far_csv = r1_dir / "lugares_lejanos.csv"
+    if not missing(far_csv):
+        sections.append(far_places_table(far_csv, catalog_csv))
+    write_markdown(tables_dir / "r1.md", "\n\n".join(sections))
+    print(f"   {tables_dir.name}/r1.md")
+
+
+# --------------------------------------------------------------------------- #
+# R2: gráfica de Dijkstra y tablas
+# --------------------------------------------------------------------------- #
+@dataclass(frozen=True)
+class ScatterPlot:
+    """Lo que se dibujó en ``dijkstra_tiempo_vs_nodos.png`` (para las pruebas, PE-C11)."""
+
+    png: Path
+    series_points: dict[str, int]
+
+
+def plot_dijkstra(rows: Sequence[dict[str, str]], png: Path) -> ScatterPlot:
+    """Dispersión de tiempo frente a nodos explorados, ejes logarítmicos (PE-B10)."""
+    fig, ax = plt.subplots(figsize=FIGURE_SIZE_IN)
+    fig.patch.set_facecolor("white")
+    counts: dict[str, int] = {}
+    for (version, label), (_, color, marker) in zip(DIJKSTRA_VERSIONS, SERIES_STYLES):
+        points = [row for row in rows if row["version"] == version]
+        ax.plot([int(row["nodos_explorados"]) for row in points],
+                [float(row["tiempo_ms"]) for row in points], linestyle="none",
+                color=color, marker=marker, markersize=MARKER_SIZE_PT, label=label)
+        counts[label] = len(points)
+    ax.set_xscale("log")                 # Antes de los formatos: set_*scale los reinicia.
+    ax.set_yscale("log")
+    for axis in (ax.xaxis, ax.yaxis):
+        axis.set_major_locator(LogLocator(base=10))
+        axis.set_major_formatter(FuncFormatter(log_tick_label))
+        axis.set_minor_formatter(NullFormatter())
+    ax.grid(axis="y", which="major", color=GRID_COLOR, linewidth=0.8)
+    ax.set_axisbelow(True)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    ax.set_xlabel("Nodos explorados (escala logarítmica)")
+    ax.set_ylabel("Tiempo (ms, escala logarítmica)")
+    ax.set_title("Dijkstra: tiempo según nodos explorados")
+    ax.legend(loc="upper left", frameon=False)
+    fig.tight_layout()
+    fig.savefig(png, dpi=FIGURE_DPI, facecolor="white")
+    plt.close(fig)
+    return ScatterPlot(png, counts)
+
+
+def measurements_table(rows: Sequence[dict[str, str]], csv_path: Path) -> str:
+    headers = ["Origen", "Destino", "Versión", "Tiempo de viaje (s)", "Nodos explorados",
+               "Tiempo (ms)", "Tipo de par"]
+    body = [[row["origen"], row["destino"], row["version"],
+             format_fixed(float(row["tiempo_viaje_s"]), 1), integer(row["nodos_explorados"]),
+             format_ms(float(row["tiempo_ms"])), row["tipo_par"]] for row in rows]
+    return "\n\n".join(["### Mediciones de Dijkstra", markdown_table(headers, body),
+                        "Mediana de 5 ejecuciones. " + source_line(csv_path)])
+
+
+def ratio_pairs_table(csv_path: Path) -> str:
+    headers = ["Origen", "Destino", "Nodos explorados lineal", "Nodos explorados cola",
+               "Tiempo lineal (ms)", "Tiempo cola (ms)", "Cociente"]
+    body = [[row["origen"], row["destino"], integer(row["explorados_lineal"]),
+             integer(row["explorados_cola"]), format_ms(float(row["tiempo_lineal_ms"])),
+             format_ms(float(row["tiempo_cola_ms"])), format_fixed(float(row["cociente"]), 1)]
+            for row in read_csv(csv_path)]
+    return "\n\n".join(["### Cociente lineal / cola de prioridad por par",
+                        markdown_table(headers, body), source_line(csv_path)])
+
+
+def ratio_summary_table(csv_path: Path) -> str:
+    row = read_csv(csv_path)[0]
+    body = [[format_fixed(float(row[col]), 1) for col in ("mediana", "minimo", "maximo")]]
+    return "\n\n".join([f"### Cociente entre versiones (en los {row['pares']} pares medidos "
+                        "con ambas)", markdown_table(["Mediana", "Mínimo", "Máximo"], body),
+                        source_line(csv_path)])
+
+
+def matrix_summary(json_path: Path) -> str:
+    summary = read_json(json_path)
+    diff = summary["max_diferencia_s"]
+    same_node = ", ".join(" y ".join(f"`{p}`" for p in group)
+                          for group in summary["lugares_mismo_nodo"]) or "ninguno"
+    lines = [
+        f"- Lugares: {summary['n']} (matriz {summary['n']} × {summary['n']}).",
+        f"- Tiempo de cálculo: {format_ms(summary['tiempo_ms'])} ms.",
+        f"- Pares asimétricos: {summary['pares_asimetricos']} de {summary['pares_totales']}.",
+        f"- Mayor diferencia entre ida y regreso: {format_fixed(diff['valor'], 1)} s "
+        f"(`{diff['lugar_a']}` y `{diff['lugar_b']}`).",
+        f"- Lugares en el mismo nodo: {same_node}.",
+    ]
+    return "\n\n".join(["### Matriz de tiempos", "\n".join(lines), source_line(json_path)])
+
+
+def figuras_r2(r2_dir: Path = paths.R2, tables_dir: Path = TABLES_DIR) -> ScatterPlot | None:
+    """Gráfica y tablas de R2 (R2-B14, PE-B09, PE-B10); devuelve lo dibujado (PE-C11)."""
+    csv_path = r2_dir / "dijkstra_mediciones.csv"
+    if missing(csv_path):
+        return None
+    rows = read_csv(csv_path)
+    plot = plot_dijkstra(rows, r2_dir / "dijkstra_tiempo_vs_nodos.png")
+    print(f"   {r2_dir.name}/{plot.png.name}")
+
+    sections = ["## Requerimiento 2: caminos mínimos", measurements_table(rows, csv_path)]
+    for name, build in (("dijkstra_cociente.csv", ratio_pairs_table),
+                        ("dijkstra_cociente_resumen.csv", ratio_summary_table),
+                        ("matriz_resumen.json", matrix_summary)):
+        if not missing(r2_dir / name):
+            sections.append(build(r2_dir / name))
+    write_markdown(tables_dir / "r2.md", "\n\n".join(sections))
+    print(f"   {tables_dir.name}/r2.md")
+    return plot
 
 
 # --------------------------------------------------------------------------- #
@@ -304,7 +495,8 @@ def figuras_r4(
 
 def main() -> None:
     print("Generando gráficas y tablas desde results/…")
-    # figuras_r2()   ← Juan la agrega aquí (ver el bloque R2 arriba).
+    figuras_r1()
+    figuras_r2()
     figuras_r3()
     figuras_r4()
     print("   listo")
