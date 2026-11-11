@@ -171,8 +171,9 @@ libres, costaba Θ(k · k!): se midieron ≈ (e − 1) · k · k! iteraciones pa
   (constante `ITINERARY_ATTRACTIONS` en `scripts/run_r4.py`): `jardin_botanico`,
   `museo_oro_quimbaya`, `parque_de_la_vida`, `parque_fundadores`, `colina_iluminada`,
   `alto_de_la_cruz`, `barbas_bremen`; la visita de cada uno sale del catálogo. Se
-  eligió para ejercer R4-B17 con un solo atractivo quitado: con la matriz de R2 del
-  5 nov la jornada es 13,04 h y, al quitar `barbas_bremen`, 9,99 h. Ninguna lista de
+  eligió para ejercer R4-B17 con un solo atractivo quitado: con la matriz de R2
+  generada con el catálogo verificado (commit ff3aa32, sha256 `00db84c0…`) la
+  jornada es 13,26 h y, al quitar `barbas_bremen`, 10,04 h. Ninguna lista de
   7 u 8 atractivos del catálogo pasa de 11 h por menos de 2 h, porque los 7 más
   cortos ya suman 11,25 h de visitas.
   - `results/r4/itinerario.csv` (formato del anexo):
