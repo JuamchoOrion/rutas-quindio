@@ -127,9 +127,18 @@ pestaña correspondiente muestra qué script lo genera.
 - **Nodos**: los algoritmos trabajan con índices `0..V-1`; `Graph` traduce desde y
   hacia los ids de OSM.
 - **Implementación propia**: Dijkstra, QuickHull, fuerza bruta, Held-Karp y el
-  vecino más cercano no usan funciones de librería que los resuelvan. NetworkX y
-  SciPy solo aparecen en `tests/` para verificar resultados. De apoyo se usa
-  `heapq` (cola de prioridad; su costo se analiza en la spec de R2).
+  vecino más cercano no usan funciones de librería que los resuelvan. De apoyo se
+  usa `heapq` (cola de prioridad; su costo se analiza en la spec de R2). Las
+  librerías aparecen solo en estos lugares:
+  - **OSMnx y NetworkX** preparan la red: descarga, CFC con
+    `ox.truncate.largest_component` (lo pide el enunciado en R1), lectura del GraphML
+    y conversión a listas de adyacencia propias (`build_network.py`,
+    `measure_scc.py`, `inspect_scc.py`, `rutas.data_io`). Ningún algoritmo de R2–R4
+    los usa.
+  - **SciPy** se usa en `run_r3.py` para la comparación con `ConvexHull` que pide el
+    enunciado en R3 (verificación y tiempos).
+  - **NetworkX y SciPy** verifican resultados en `tests/` (Dijkstra contra
+    NetworkX, envolvente contra SciPy).
 - **Commits**: un commit por spec o por caso implementado, con el ID en el mensaje
   (`feat(R2): Dijkstra con cola de prioridad [R2-B08, R2-C01..C08]`).
 
