@@ -1,0 +1,23 @@
+{
+  "partida": "armenia",
+  "atractivos_elegidos": [
+    "jardin_botanico",
+    "museo_oro_quimbaya",
+    "parque_de_la_vida",
+    "parque_fundadores",
+    "colina_iluminada",
+    "alto_de_la_cruz",
+    "barbas_bremen"
+  ],
+  "visitas_total_min": 495.0,
+  "desplazamientos_total_min": 107.42974255019287,
+  "jornada_total_h": 10.040495709169882,
+  "cabe": true,
+  "quitados": [
+    {
+      "lugar": "barbas_bremen",
+      "ahorro_min": 193.4235329957575,
+      "jornada_antes_h": 13.264221259099173
+    }
+  ]
+}

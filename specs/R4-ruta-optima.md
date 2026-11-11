@@ -140,8 +140,16 @@ libres, costaba Θ(k · k!): se midieron ≈ (e − 1) · k · k! iteraciones pa
 
 - Inicio Armenia; `k` lugares al azar del catálogo, sin Armenia, de todas las
   categorías, con `random.Random(SEED + k)` (y `SEED + 100·k + i` para la
-  instancia `i` de calidad).
-- Matriz de entrada: `results/r2/matriz_tiempos.csv` (R2-B10).
+  instancia `i` de calidad). Candidatos: los ids de la matriz sin `armenia`, en el
+  orden de la matriz; se eligen con `rng.sample(candidatos, k)` y ese orden da los
+  índices `1..k`.
+- Matriz de entrada: `results/r2/matriz_tiempos.csv` (R2-B10). Si sus ids no son
+  los del catálogo, el script aborta. Se registra en `results/r4/matriz_usada.json`:
+  `archivo`, `sha256`, `fecha_corrida` y `resumen_r2` (copia de
+  `results/r2/matriz_resumen.json`).
+- Las exactas se miden con `measure_with_timeout` sobre `functools.partial` (sirve
+  con `fork` y con `spawn`); la verificación usa el `Tour` devuelto por la medición
+  y comprueba también R4-B03.
 - Exactas: `k = 5..12`, una instancia por `k`; se detiene cada método cuando una
   ejecución pasa de 5 min (PE-B07): ese `k` queda como no completado y los `k`
   mayores ya no se ejecutan con ese método. `results/r4/exactas_tiempos.csv`:
@@ -157,17 +165,26 @@ libres, costaba Θ(k · k!): se midieron ≈ (e − 1) · k · k! iteraciones pa
     `k, instancia, costo_optimo_s, costo_heuristica_s, brecha_pct, semilla`.
   - `results/r4/heuristica_resumen.csv` (generado desde el anterior):
     `k, instancias, brecha_promedio_pct, brecha_maxima_pct`.
-  - Verificación: en cada instancia `costo_heuristica_s ≥ costo_optimo_s`; si no, aborta.
-- Itinerario: partida `armenia`; **8 atractivos** de categoría `atractivo` elegidos
-  con `random.Random(SEED)` (con 8 es probable que la jornada no quepa y se ejerza
-  R4-B17). Si el grupo prefiere una lista elegida a mano, se fija como constante en
-  `scripts/run_r4.py` y se actualiza esta línea.
+  - Óptimo con Held-Karp. Verificación: en cada instancia
+    `costo_heuristica_s ≥ costo_optimo_s · (1 − 1e-9)`; si no, aborta.
+- Itinerario: partida `armenia`; lista fija de **7 atractivos** elegida por el grupo
+  (constante `ITINERARY_ATTRACTIONS` en `scripts/run_r4.py`): `jardin_botanico`,
+  `museo_oro_quimbaya`, `parque_de_la_vida`, `parque_fundadores`, `colina_iluminada`,
+  `alto_de_la_cruz`, `barbas_bremen`; la visita de cada uno sale del catálogo. Se
+  eligió para ejercer R4-B17 con un solo atractivo quitado: con la matriz de R2
+  generada con el catálogo verificado (commit ff3aa32, sha256 `00db84c0…`) la
+  jornada es 13,26 h y, al quitar `barbas_bremen`, 10,04 h. Ninguna lista de
+  7 u 8 atractivos del catálogo pasa de 11 h por menos de 2 h, porque los 7 más
+  cortos ya suman 11,25 h de visitas.
   - `results/r4/itinerario.csv` (formato del anexo):
-    `orden, lugar, desplazamiento_min, visita_min, acumulado_h`; la última fila
-    tiene `orden = Regreso` y `visita_min` vacío.
+    `orden, lugar, desplazamiento_min, visita_min, acumulado_h, id`; `lugar` es el
+    nombre del catálogo y `id` su identificador (columna agregada al final, el anexo
+    permite ampliar columnas); la última fila tiene `orden = Regreso`, `lugar` = nombre
+    de Armenia, `id = armenia` y `visita_min` vacío.
   - `results/r4/itinerario_resumen.json`: `partida`, `atractivos_elegidos`,
     `visitas_total_min`, `desplazamientos_total_min`, `jornada_total_h`, `cabe`, y
-    `quitados` (lista de `{lugar, ahorro_min, jornada_antes_h}`, R4-B17).
+    `quitados` (lista de `{lugar, ahorro_min, jornada_antes_h}`, R4-B17). Aquí
+    `partida`, `atractivos_elegidos` y `quitados[].lugar` son ids del catálogo.
 - Datos de la máquina en `results/r4/maquina.json` (PE-B01).
 - Gráfica (la genera `scripts/make_figures.py` desde `exactas_tiempos.csv`,
   PE-B08): `results/r4/exactas_tiempo_vs_k.png`, `k` en el eje x, tiempo (ms) en el

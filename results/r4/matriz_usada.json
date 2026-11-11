@@ -1,0 +1,22 @@
+{
+  "archivo": "results/r2/matriz_tiempos.csv",
+  "sha256": "00db84c08e5e33d7d5e598b94ec95b7b440357818dbc49fc0b1918a481ea89c2",
+  "fecha_corrida": "2026-11-10T21:29:54-05:00",
+  "resumen_r2": {
+    "n": 40,
+    "tiempo_ms": 323.363796,
+    "pares_asimetricos": 772,
+    "pares_totales": 780,
+    "max_diferencia_s": {
+      "valor": 605.682982260988,
+      "lugar_a": "hacienda_bambusa",
+      "lugar_b": "trillaescol"
+    },
+    "lugares_mismo_nodo": [
+      [
+        "valle_de_cocora",
+        "reserva_acaime"
+      ]
+    ]
+  }
+}

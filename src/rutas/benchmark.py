@@ -8,6 +8,7 @@ from __future__ import annotations
 import multiprocessing as mp
 import os
 import platform
+import subprocess
 import sys
 import time
 from collections.abc import Callable, Sequence
@@ -18,6 +19,9 @@ SEED = 20262                   # Semilla única de todos los experimentos (PE-B0
 REPETITIONS = 5                # PE-B03
 LONG_RUN_S = 60.0              # Ejecuciones más largas se miden una sola vez (PE-B03).
 TIMEOUT_S = 300.0              # Límite de 5 minutos (PE-B07).
+MACOS_SYSTEM = "Darwin"        # Valor de platform.system() en macOS (PE-B01).
+SYSCTL_CPU_COMMAND = ("sysctl", "-n", "machdep.cpu.brand_string")  # PE-B01
+SYSCTL_TIMEOUT_S = 2.0         # Límite para sysctl; nunca se queda colgado (PE-B01).
 
 _NS_PER_MS = 1_000_000
 
@@ -94,10 +98,10 @@ def measure_with_timeout(
     """Como :func:`measure`, pero ninguna ejecución puede durar más de ``timeout_s``.
 
     Las ejecuciones corren en un proceso hijo. Si una pasa el límite, el hijo se
-    termina y se devuelve ``completed=False`` (PE-B07). En Linux se usa ``fork``,
-    así que ``fn`` puede ser un ``lambda``; en Windows/macOS (``spawn``) debe poder
-    serializarse con ``pickle`` (por ejemplo ``functools.partial`` de una función
-    de módulo).
+    termina y se devuelve ``completed=False`` (PE-B07). El hijo se crea con ``fork``
+    cuando el sistema lo ofrece (Linux y también macOS), y entonces ``fn`` puede ser
+    un ``lambda``; si no (Windows), se usa ``spawn`` y ``fn`` debe poder serializarse
+    con ``pickle`` (por ejemplo ``functools.partial`` de una función de módulo).
     """
     method = "fork" if "fork" in mp.get_all_start_methods() else "spawn"
     context = mp.get_context(method)
@@ -144,6 +148,32 @@ def machine_info() -> dict[str, Any]:
 
 
 def _cpu_model() -> str:
+    """Modelo del procesador (PE-B01).
+
+    En macOS usa `sysctl`; si falla o no devuelve nada, sigue con el método de los
+    demás sistemas, que no cambia.
+    """
+    if platform.system() == MACOS_SYSTEM:
+        model = _macos_cpu_model()
+        if model:
+            return model
+    return _generic_cpu_model()
+
+
+def _macos_cpu_model() -> str | None:
+    """Salida de `sysctl -n machdep.cpu.brand_string`, o None si falla (PE-B01)."""
+    try:
+        completed = subprocess.run(
+            list(SYSCTL_CPU_COMMAND), capture_output=True, text=True,
+            timeout=SYSCTL_TIMEOUT_S, check=True,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return completed.stdout.strip() or None
+
+
+def _generic_cpu_model() -> str:
+    """`model name` de /proc/cpuinfo; si no existe, platform (PE-B01)."""
     try:
         with open("/proc/cpuinfo", encoding="utf-8") as file:
             for line in file:
