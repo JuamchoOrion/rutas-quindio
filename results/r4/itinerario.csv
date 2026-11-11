@@ -1,8 +1,8 @@
 orden,lugar,desplazamiento_min,visita_min,acumulado_h,id
-1,Jardín Botánico del Quindío,9.100495530255255,150.0,2.6516749255042544,jardin_botanico
-2,Mirador Alto de la Cruz y Calle Real,27.396824531799158,90.0,4.608288667700906,alto_de_la_cruz
-3,Mirador Colina Iluminada,28.433178955802287,60.0,6.082174983630944,colina_iluminada
-4,Museo del Oro Quimbaya,32.03581722358286,90.0,8.116105270690658,museo_oro_quimbaya
-5,Parque Fundadores,2.575297020677376,45.0,8.909026887701948,parque_fundadores
-6,Parque de la Vida,1.9832809456201999,60.0,9.942081570128952,parque_de_la_vida
-Regreso,Plaza de Bolívar de Armenia,2.889464230489161,,9.990239307303769,armenia
+1,Jardín Botánico del Quindío,9.771243591845028,150.0,2.6628540598640837,jardin_botanico
+2,Mirador Alto de la Cruz y Calle Real,28.000641229161335,90.0,4.629531413683439,alto_de_la_cruz
+3,Mirador Colina Iluminada,29.551292535925768,60.0,6.122052955948869,colina_iluminada
+4,Museo del Oro Quimbaya,30.677501579055374,90.0,8.133344648933125,museo_oro_quimbaya
+5,Parque de la Vida,4.199900883511217,60.0,9.203342996991646,parque_de_la_vida
+6,Parque Fundadores,1.4990408439198826,45.0,9.978327011056978,parque_fundadores
+Regreso,Plaza de Bolívar de Armenia,3.7301218867742674,,10.040495709169882,armenia

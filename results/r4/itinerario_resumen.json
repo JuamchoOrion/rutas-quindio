@@ -10,14 +10,14 @@
     "barbas_bremen"
   ],
   "visitas_total_min": 495.0,
-  "desplazamientos_total_min": 104.4143584382263,
-  "jornada_total_h": 9.990239307303773,
+  "desplazamientos_total_min": 107.42974255019287,
+  "jornada_total_h": 10.040495709169882,
   "cabe": true,
   "quitados": [
     {
       "lugar": "barbas_bremen",
-      "ahorro_min": 183.10105098357238,
-      "jornada_antes_h": 13.041923490363311
+      "ahorro_min": 193.4235329957575,
+      "jornada_antes_h": 13.264221259099173
     }
   ]
 }
