@@ -25,14 +25,31 @@ def test_PE_C02_timeout_marks_not_completed():
     start = time.perf_counter()
     measurement = measure_with_timeout(lambda: time.sleep(3), timeout_s=1)
     assert measurement.completed is False
+    assert measurement.timed_out is True
+    assert measurement.error is None
     assert time.perf_counter() - start < 2.5
 
 
 def test_PE_C03_fast_function_completes_with_result():
     measurement = measure_with_timeout(lambda: sum(range(1000)), timeout_s=10)
     assert measurement.completed is True
+    assert measurement.timed_out is False
+    assert measurement.error is None
     assert measurement.result == 499_500
     assert len(measurement.samples_ms) == 5
+
+
+def _raise_invalid_matrix():
+    raise ValueError("matriz inválida")
+
+
+def test_PE_C13_exception_is_an_error_not_a_timeout():
+    start = time.perf_counter()
+    measurement = measure_with_timeout(_raise_invalid_matrix, timeout_s=10)
+    assert measurement.completed is False
+    assert measurement.timed_out is False
+    assert "ValueError" in measurement.error and "matriz inválida" in measurement.error
+    assert time.perf_counter() - start < 5
 
 
 def test_PE_C04_median():

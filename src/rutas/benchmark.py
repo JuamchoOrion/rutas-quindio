@@ -24,6 +24,8 @@ SYSCTL_CPU_COMMAND = ("sysctl", "-n", "machdep.cpu.brand_string")  # PE-B01
 SYSCTL_TIMEOUT_S = 2.0         # Límite para sysctl; nunca se queda colgado (PE-B01).
 
 _NS_PER_MS = 1_000_000
+_SAMPLE, _ERROR = "muestra", "error"   # Tipos de mensaje del hijo al padre (PE-B07).
+CHILD_DIED_MESSAGE = "el proceso hijo terminó sin enviar resultado"
 
 
 @dataclass
@@ -33,6 +35,8 @@ class Measurement:
     samples_ms: list[float] = field(default_factory=list)
     completed: bool = True
     result: Any = None
+    timed_out: bool = False        # Pasó el límite: "no completada" (PE-B07).
+    error: str | None = None       # El algoritmo lanzó una excepción (PE-B07).
 
     @property
     def median_ms(self) -> float | None:
@@ -79,14 +83,21 @@ def measure(
 
 
 def _child(fn, repetitions, long_run_s, connection) -> None:
-    """Proceso hijo: envía cada muestra apenas termina para que el padre vigile el límite."""
-    for run in range(repetitions):
-        elapsed_ms, result = _timed_call(fn)
-        is_last = run == repetitions - 1 or (run == 0 and elapsed_ms > long_run_s * 1000)
-        connection.send((elapsed_ms, result if is_last else None, is_last))
-        if is_last:
-            break
-    connection.close()
+    """Proceso hijo: envía cada muestra apenas termina para que el padre vigile el límite.
+
+    Si ``fn`` lanza una excepción, la envía como error en lugar de morir (PE-B07).
+    """
+    try:
+        for run in range(repetitions):
+            elapsed_ms, result = _timed_call(fn)
+            is_last = run == repetitions - 1 or (run == 0 and elapsed_ms > long_run_s * 1000)
+            connection.send((_SAMPLE, (elapsed_ms, result if is_last else None, is_last)))
+            if is_last:
+                break
+    except Exception as exc:  # noqa: BLE001 — cualquier fallo del algoritmo es un error.
+        connection.send((_ERROR, f"{type(exc).__name__}: {exc}"))
+    finally:
+        connection.close()
 
 
 def measure_with_timeout(
@@ -98,7 +109,9 @@ def measure_with_timeout(
     """Como :func:`measure`, pero ninguna ejecución puede durar más de ``timeout_s``.
 
     Las ejecuciones corren en un proceso hijo. Si una pasa el límite, el hijo se
-    termina y se devuelve ``completed=False`` (PE-B07). El hijo se crea con ``fork``
+    termina y se devuelve ``completed=False`` y ``timed_out=True`` (PE-B07). Si ``fn``
+    lanza una excepción, ``completed=False``, ``timed_out=False`` y ``error`` dice cuál:
+    no es una ejecución "no completada", y quien llama debe abortar. El hijo se crea con ``fork``
     cuando el sistema lo ofrece (Linux y también macOS), y entonces ``fn`` puede ser
     un ``lambda``; si no (Windows), se usa ``spawn`` y ``fn`` debe poder serializarse
     con ``pickle`` (por ejemplo ``functools.partial`` de una función de módulo).
@@ -117,14 +130,21 @@ def measure_with_timeout(
         while True:
             if not parent_conn.poll(timeout_s):
                 measurement.completed = False
+                measurement.timed_out = True
                 break
-            elapsed_ms, result, is_last = parent_conn.recv()
+            kind, payload = parent_conn.recv()
+            if kind == _ERROR:
+                measurement.completed = False
+                measurement.error = payload
+                break
+            elapsed_ms, result, is_last = payload
             measurement.samples_ms.append(elapsed_ms)
             if is_last:
                 measurement.result = result
                 break
-    except EOFError:  # El hijo terminó con un error.
+    except EOFError:  # El hijo murió sin enviar nada (por ejemplo, sin memoria).
         measurement.completed = False
+        measurement.error = CHILD_DIED_MESSAGE
     finally:
         if process.is_alive():
             process.terminate()
