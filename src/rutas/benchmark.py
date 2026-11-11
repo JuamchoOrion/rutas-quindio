@@ -98,10 +98,10 @@ def measure_with_timeout(
     """Como :func:`measure`, pero ninguna ejecución puede durar más de ``timeout_s``.
 
     Las ejecuciones corren en un proceso hijo. Si una pasa el límite, el hijo se
-    termina y se devuelve ``completed=False`` (PE-B07). En Linux se usa ``fork``,
-    así que ``fn`` puede ser un ``lambda``; en Windows/macOS (``spawn``) debe poder
-    serializarse con ``pickle`` (por ejemplo ``functools.partial`` de una función
-    de módulo).
+    termina y se devuelve ``completed=False`` (PE-B07). El hijo se crea con ``fork``
+    cuando el sistema lo ofrece (Linux y también macOS), y entonces ``fn`` puede ser
+    un ``lambda``; si no (Windows), se usa ``spawn`` y ``fn`` debe poder serializarse
+    con ``pickle`` (por ejemplo ``functools.partial`` de una función de módulo).
     """
     method = "fork" if "fork" in mp.get_all_start_methods() else "spawn"
     context = mp.get_context(method)
