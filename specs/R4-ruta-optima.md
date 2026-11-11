@@ -167,11 +167,14 @@ libres, costaba Θ(k · k!): se midieron ≈ (e − 1) · k · k! iteraciones pa
     `k, instancias, brecha_promedio_pct, brecha_maxima_pct`.
   - Óptimo con Held-Karp. Verificación: en cada instancia
     `costo_heuristica_s ≥ costo_optimo_s · (1 − 1e-9)`; si no, aborta.
-- Itinerario: partida `armenia`; **8 atractivos** de categoría `atractivo` elegidos
-  con `random.Random(SEED).sample(...)` sobre los atractivos en el orden del
-  catálogo; la visita de cada uno sale del catálogo (con 8 es probable que la jornada no quepa y se ejerza
-  R4-B17). Si el grupo prefiere una lista elegida a mano, se fija como constante en
-  `scripts/run_r4.py` y se actualiza esta línea.
+- Itinerario: partida `armenia`; lista fija de **7 atractivos** elegida por el grupo
+  (constante `ITINERARY_ATTRACTIONS` en `scripts/run_r4.py`): `jardin_botanico`,
+  `museo_oro_quimbaya`, `parque_de_la_vida`, `parque_fundadores`, `colina_iluminada`,
+  `alto_de_la_cruz`, `barbas_bremen`; la visita de cada uno sale del catálogo. Se
+  eligió para ejercer R4-B17 con un solo atractivo quitado: con la matriz de R2 del
+  5 nov la jornada es 13,04 h y, al quitar `barbas_bremen`, 9,99 h. Ninguna lista de
+  7 u 8 atractivos del catálogo pasa de 11 h por menos de 2 h, porque los 7 más
+  cortos ya suman 11,25 h de visitas.
   - `results/r4/itinerario.csv` (formato del anexo):
     `orden, lugar, desplazamiento_min, visita_min, acumulado_h, id`; `lugar` es el
     nombre del catálogo y `id` su identificador (columna agregada al final, el anexo
