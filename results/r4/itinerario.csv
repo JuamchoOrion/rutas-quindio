@@ -1,0 +1,6 @@
+orden,lugar,desplazamiento_min,visita_min,acumulado_h,id
+1,Parque Ecológico Peñas Blancas,10.028189077997514,180.0,3.1671364846332914,penas_blancas
+2,Mirador Alto de la Cruz y Calle Real,28.845474444588696,90.0,5.147894392043104,alto_de_la_cruz
+3,Reserva Natural Barbas-Bremen,22.31146861589352,180.0,8.519752202307995,barbas_bremen
+4,Parque Fundadores,27.585375817668332,45.0,9.729508465935801,parque_fundadores
+Regreso,Plaza de Bolívar de Armenia,4.354033259196025,,9.8020756869224,armenia

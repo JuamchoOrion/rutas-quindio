@@ -1,0 +1,39 @@
+{
+  "partida": "armenia",
+  "atractivos_elegidos": [
+    "parque_fundadores",
+    "parque_los_arrieros",
+    "reserva_acaime",
+    "parque_del_cafe",
+    "barbas_bremen",
+    "penas_blancas",
+    "alto_de_la_cruz",
+    "panaca"
+  ],
+  "visitas_total_min": 495.0,
+  "desplazamientos_total_min": 93.1245412153441,
+  "jornada_total_h": 9.8020756869224,
+  "cabe": true,
+  "quitados": [
+    {
+      "lugar": "panaca",
+      "ahorro_min": 378.1872958602996,
+      "jornada_antes_h": 32.633420047950125
+    },
+    {
+      "lugar": "parque_del_cafe",
+      "ahorro_min": 370.90320184402276,
+      "jornada_antes_h": 26.33029845027846
+    },
+    {
+      "lugar": "reserva_acaime",
+      "ahorro_min": 346.40556608712745,
+      "jornada_antes_h": 20.148578419544748
+    },
+    {
+      "lugar": "parque_los_arrieros",
+      "ahorro_min": 264.52106785022204,
+      "jornada_antes_h": 14.37515231809262
+    }
+  ]
+}
