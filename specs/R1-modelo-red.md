@@ -148,6 +148,18 @@ Graph.from_edges(node_ids, edges) -> Graph                        # listas de ad
   `PLAZA_BOLIVAR_ARMENIA`, que debe coincidir con el lugar `armenia` del catálogo
   (CAT-B05 en [`catalogo.md`](catalogo.md)); el script aborta si no coinciden.
 
+- **R1-B26. Repetir solo la medición de la CFC.** `scripts/measure_scc.py` vuelve a
+  medir R1-B13 sin descargar de nuevo el departamento ni tocar `data/processed/`:
+  el departamento sale de `data/raw/quindio.graphml` con sus pesos (lo mismo que mide
+  `build_network.py`) y los radios, de `ox.graph_from_point` con la caché de OSMnx
+  (`cache/`) y el servidor guardado en `red_resumen.json` (`overpass_radios_scc`).
+  Usa las mismas funciones de `build_network.py`, así que la medición es idéntica
+  (mediana de 5, PE-B03). Antes de escribir compara V y E de cada red con
+  `scc_tiempos.csv` vigente y **aborta** si alguna cambió (`size_mismatches`), porque
+  entonces la red ya no es la de R2–R4. Si coinciden, reescribe `scc_tiempos.csv` y
+  `maquina.json`. Las cinco redes se miden en una sola ejecución, con el equipo en
+  reposo.
+
 ### Catálogo
 
 - **R1-B20.** El catálogo `data/catalogo.csv` tiene columnas
@@ -187,6 +199,7 @@ Graph.from_edges(node_ids, edges) -> Graph                        # listas de ad
 | R1-C12 | Catálogo con un atractivo sin duración | error que menciona su id |
 | R1-C13 | `Graph.from_edges` con aristas paralelas | conserva ambas; `n_edges` las cuenta |
 | R1-C14 | `DEFAULT_SPEED_KMH` frente a `LEGAL_MAX_KMH` | mismos tipos; cada velocidad > 0 y ≤ su límite legal |
+| R1-C15 | `size_mismatches` con las filas vigentes de `scc_tiempos.csv` frente a las mismas filas, y frente a unas donde el radio de 5 km tiene una arista más | Lista vacía; en el segundo caso, una diferencia que nombra "Radio de 5 km" |
 
 ## Fuera de alcance
 

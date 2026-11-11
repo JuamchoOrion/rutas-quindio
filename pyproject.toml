@@ -17,8 +17,8 @@ dependencies = [
 red = ["osmnx>=2.0", "networkx>=3.3"]
 # Verificación contra librerías (solo pruebas) y gráficas.
 dev = ["pytest>=8", "networkx>=3.3", "scipy>=1.11", "matplotlib>=3.8", "pandas>=2.1"]
-# Aplicación (R5).
-app = ["streamlit>=1.38", "folium>=0.17", "streamlit-folium>=0.22", "pandas>=2.1"]
+# Aplicación (R5). Probada con streamlit 1.66.1: usa st.tabs con on_change/bind y width="stretch".
+app = ["streamlit>=1.66", "folium>=0.17", "streamlit-folium>=0.22", "pandas>=2.1"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

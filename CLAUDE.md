@@ -13,7 +13,8 @@ Proyecto final de Análisis de Algoritmos (UniQuindío). Enunciado y anexo en
    comentario del código que la cumple.
 3. **Implementación propia.** Dijkstra, QuickHull, fuerza bruta, Held-Karp y el
    vecino más cercano NO pueden usar NetworkX, SciPy, Shapely ni
-   `itertools.permutations`. Esas librerías solo se usan en `tests/` para verificar.
+   `itertools.permutations`. Fuera de `tests/` solo se usan OSMnx/NetworkX para
+   preparar la red (R1) y SciPy en `run_r3.py` para la comparación que pide R3.
    Permitido como apoyo: `heapq`, `list`, `dict`, `sorted` (documentar su costo).
 4. **Protocolo de medición** (`specs/protocolo-experimental.md`): usar
    `rutas.benchmark.measure` / `measure_with_timeout`; solo se cronometra el
@@ -33,12 +34,24 @@ Proyecto final de Análisis de Algoritmos (UniQuindío). Enunciado y anexo en
 pip install -e ".[red,dev]"     # dependencias
 pytest                          # siempre antes de commitear
 python scripts/build_network.py # R1 (requiere internet y catálogo válido)
+python scripts/measure_scc.py   # R1: repetir solo la medición de la CFC (R1-B26)
+python scripts/run_r2.py        # R2; luego run_r3.py y run_r4.py
+python scripts/make_figures.py  # gráficas (results/rX/) y tablas (results/tablas/)
+streamlit run app/app.py        # R5 (pip install -e ".[red,app]")
 ```
 
 ## Pendiente (en orden)
 
-1. Llenar `data/catalogo.csv` (≥ 40 lugares, coordenadas verificadas en mapa).
-2. Ejecutar R1 y completar la tabla de velocidades por defecto con su fuente.
-3. `scripts/run_r2.py`, `run_r3.py`, `run_r4.py`, `make_figures.py` según las specs.
-4. Aplicación (spec R5) en `app/app.py`.
-5. Registrar cada sesión con IA en `docs/anexo-ia.md`.
+Hecho: catálogo verificado (40 lugares), R1–R4 ejecutados con sus tablas y
+gráficas en `results/`, aplicación R5.
+
+1. Documento técnico con la estructura de la sección 7 del enunciado: arquitectura
+   (`docs/arquitectura.md`), por requerimiento problema, complejidad con fuente y
+   recurrencia, correctitud, tablas y gráficas de `results/tablas/` y discusión;
+   conclusiones; anexo de IA. Repartir las secciones entre Juan y Laura.
+2. Discusiones que el documento debe incluir: los 7 lugares a más de 500 m
+   (R1-B17), el radio de 20 km con más nodos que el departamento, el cociente de
+   Dijkstra no constante (185–439) frente a lo esperado en R2, y las dos máquinas
+   (R1/R2 en Ryzen 7 7445HS, R3/R4 en Apple M2).
+3. Registrar cada sesión con IA en `docs/anexo-ia.md`.
+4. Preparar la sustentación: cada integrante debe poder explicar cualquier parte.

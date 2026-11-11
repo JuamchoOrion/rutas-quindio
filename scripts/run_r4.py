@@ -186,7 +186,9 @@ def run_method(
         print(f"   {label}: no se ejecuta (no completó un k menor)")
         return MethodRun(completed=False)
     measurement = measure_with_timeout(partial(solver, costs))
-    if not measurement.completed:
+    if measurement.error is not None:   # Una excepción no es "no completada" (PE-B07).
+        raise SystemExit(f"{label} lanzó un error: {measurement.error}")
+    if measurement.timed_out:
         print(f"   {label}: no completado (límite de 5 min)")
         return MethodRun(completed=False)
     check_tour(costs, measurement.result, label)
