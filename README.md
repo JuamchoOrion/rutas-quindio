@@ -75,6 +75,10 @@ python scripts/inspect_scc.py
 #    conexión, agregar --overpass-url https://maps.mail.ru/osm/tools/overpass/api
 python scripts/build_network.py
 
+#    Para repetir solo la medición de la CFC (sin descargar el departamento ni tocar
+#    data/processed/; aborta si V o E cambiaron), con el equipo en reposo:
+python scripts/measure_scc.py
+
 # 4. R2: verificar y medir Dijkstra; matriz de tiempos (results/r2/)
 python scripts/run_r2.py
 

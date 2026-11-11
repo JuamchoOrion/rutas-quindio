@@ -127,3 +127,25 @@ def test_catalog_coordinates_outside_quindio():
     places = valid_catalog()
     places.append(Place("bogota", "Bogotá", "Bogotá", "acopio", 4.71, -74.07))
     assert any("bogota" in e for e in validate_catalog(places))
+
+
+def test_R1_C15_size_mismatches(monkeypatch):
+    import csv
+    import importlib.util
+    from pathlib import Path
+
+    scripts = Path(__file__).resolve().parents[1] / "scripts"
+    monkeypatch.syspath_prepend(str(scripts))
+    spec = importlib.util.spec_from_file_location("measure_scc", scripts / "measure_scc.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    with open(scripts.parent / "results" / "r1" / "scc_tiempos.csv", encoding="utf-8") as f:
+        current = list(csv.DictReader(f))
+    assert module.size_mismatches(current, current) == []
+
+    changed = [dict(row) for row in current]
+    five_km = next(row for row in changed if row["red"] == "Radio de 5 km")
+    five_km["E"] = str(int(five_km["E"]) + 1)
+    mismatches = module.size_mismatches(current, changed)
+    assert len(mismatches) == 1 and "Radio de 5 km" in mismatches[0]
