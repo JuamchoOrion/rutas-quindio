@@ -14,12 +14,16 @@ casos de prueba, y cada caso tiene una prueba en `tests/` con el mismo ID.
 
 | Requerimiento | Spec | Algoritmos y pruebas | Experimentos | Documento |
 |---|---|---|---|---|
-| R1 Modelo de la red | ✅ | ✅ pesos, memoria, UTM, catálogo | ✅ `results/r1/` (catálogo provisional) | ⏳ |
-| R2 Caminos mínimos | ✅ | ✅ Dijkstra lineal y con cola | ✅ `results/r2/` | ⏳ |
-| R3 Envolvente convexa | ✅ | ✅ QuickHull entero | ⏳ `run_r3.py` | ⏳ |
-| R4 Ruta óptima | ✅ | ✅ fuerza bruta, Held-Karp, voraz, itinerario | ⏳ `run_r4.py` | ⏳ |
+| R1 Modelo de la red | ✅ | ✅ pesos, memoria, UTM, catálogo | ✅ `results/r1/`, tablas en `results/tablas/r1.md` | ⏳ |
+| R2 Caminos mínimos | ✅ | ✅ Dijkstra lineal y con cola | ✅ `results/r2/`, gráfica y `results/tablas/r2.md` | ⏳ |
+| R3 Envolvente convexa | ✅ | ✅ QuickHull entero | ✅ `results/r3/`, `results/tablas/r3.md` | ⏳ |
+| R4 Ruta óptima | ✅ | ✅ fuerza bruta, Held-Karp, voraz, itinerario | ✅ `results/r4/`, gráfica y `results/tablas/r4.md` | ⏳ |
 | R5 Aplicación | ✅ | ✅ `app/app.py` | — | ⏳ |
-| Catálogo (≥ 40 lugares) | ✅ | validador ✅ | ✅ 40 lugares; coordenadas por verificar | ⏳ |
+| Catálogo (≥ 40 lugares) | ✅ | validador ✅ | ✅ 40 lugares con coordenadas verificadas | ⏳ |
+
+Las mediciones de R1 y R2 se hicieron en un AMD Ryzen 7 7445HS (Linux, Python 3.14) y
+las de R3 y R4 en un Apple M2 (macOS, Python 3.12); cada requerimiento usa una sola
+máquina (PE-B01), registrada en su `results/rX/maquina.json`.
 
 ## Estructura
 
@@ -41,7 +45,8 @@ app/app.py             Aplicación demostrativa (Streamlit + Folium) R5
 tests/                 Pruebas (pytest); los nombres llevan el ID del caso de la spec
 scripts/               Descarga de la red y experimentos
 data/                  catalogo.csv, raw/ (no versionado), processed/
-results/r1..r4/        CSV/JSON de mediciones, tablas y gráficas
+results/r1..r4/        CSV/JSON de mediciones y gráficas (PNG)
+results/tablas/        Tablas Markdown para el documento técnico (make_figures.py)
 docs/                  Enunciado, arquitectura y anexo de IA
 ```
 
@@ -72,7 +77,21 @@ python scripts/build_network.py
 
 # 4. R2: verificar y medir Dijkstra; matriz de tiempos (results/r2/)
 python scripts/run_r2.py
+
+# 5. R3: verificar QuickHull contra SciPy y medir (results/r3/)
+python scripts/run_r3.py
+
+# 6. R4: verificar y medir fuerza bruta, Held-Karp y la heurística; itinerario
+#    (results/r4/). Tarda unos 4 min: la fuerza bruta con k = 12 pasa de 2 min.
+python scripts/run_r4.py
+
+# 7. Gráficas y tablas del documento, solo desde los archivos de results/
+#    (PNG en results/rX/, tablas Markdown en results/tablas/)
+python scripts/make_figures.py
 ```
+
+Cada script verifica antes de medir y aborta si la verificación falla (PE-B06). R3 y
+R4 no descargan nada: usan `data/processed/` y `results/r2/matriz_tiempos.csv`.
 
 ## Aplicación (R5)
 
